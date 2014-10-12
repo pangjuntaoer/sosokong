@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+      http://www.springframework.org/schema/beans/spring-beans.xsd
+      http://www.springframework.org/schema/context
+      http://www.springframework.org/schema/context/spring-context.xsd">
+	<!-- 通过注解方式——自动注入 -->
+	<context:annotation-config />
+	<context:component-scan base-package="cn.edu.swust" />
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+               <!--引入基本文件-->
+                <value>parameter.properties</value>
+            </list>
+        </property>
+    </bean>
+
+ <!-- 
+  ##################################################################
+    种子简单注入方式（当通过Spring配置文件注入直接再次配置）
+ ##################################################################
+  -->   
+ <bean id="seedInject" class="cn.edu.swust.seed.invoke.DefaultSeedInject">
+ <property name="seedTasks">
+ <list>
+ <bean class="cn.edu.swust.uri.SimpleSeedTask">
+ 	<property name="seedUrl" value="" />
+ 	<property name="outLinksRegex" value=""/>
+ 	<property name="contentUrlRegex" value=""/>
+ 	<property name="fetchHeigh" value=""/>
+ </bean>
+ </list>
+ </property>
+  </bean>  
+ <!-- 
+  ##################################################################
+    边界调度控制
+ ##################################################################
+  -->   
+ <bean id="frontierScheduler" class="cn.edu.swust.frontier.FrontierScheduler"/>
+ <!-- 
+ ##################################################################
+    工作队列配置
+ ##################################################################
+  -->   
+ <bean id="workQueue" class="cn.edu.swust."></bean>  
+    
+    
+ <!-- 
+ ##################################################################
+   各种处理器配置（以及工具）
+ ##################################################################
+  -->       
+ <bean id="httpUtils" class="cn.edu.swust.processor.fetch.utils.QHttpClient" scope="prototype">
+ </bean>   
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+<!-- 
+#######################################################################
+Spring数据库连接池配置
+#########################################################################
+ -->
+	<!-- Spring bean configuration. Tell Spring to bounce off BoneCP -->
+	<bean id="dataSource"
+		class="org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy">
+		<property name="targetDataSource" ref="mainDataSource">
+		</property>
+	</bean>
+	<bean id="mainDataSource" class="com.jolbox.bonecp.BoneCPDataSource"
+		destroy-method="close">
+		<property name="driverClass" value="com.mysql.jdbc.Driver" />
+		<property name="jdbcUrl" value="${jdbcurl}" />
+		<property name="username" value="${jdbcUsername}" />
+		<property name="password" value="${jdbcPassword}" />
+		<property name="idleConnectionTestPeriod" value="60" />
+		<property name="idleMaxAge" value="240" />
+		<property name="maxConnectionsPerPartition" value="30" />
+		<property name="minConnectionsPerPartition" value="10" />
+		<property name="partitionCount" value="3" />
+		<property name="acquireIncrement" value="5" />
+		<property name="statementsCacheSize" value="100" />
+		<property name="releaseHelperThreads" value="3" />
+	</bean>
+	
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="typeAliasesPackage" value="cn.edu.swust.writer"/>
+		<property name="mapperLocations" value="classpath:mapper/*.xml"/>
+	</bean>
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+</beans>
