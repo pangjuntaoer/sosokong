@@ -1,9 +1,10 @@
-package cn.edu.swust.processor.fetch.httputil;
+package cn.edu.swust.processor.fetch.utils;
 
 import java.io.File;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -11,6 +12,7 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -23,23 +25,23 @@ import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
-import org.apache.http.cookie.Cookie;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.entity.mime.FormBodyPart;
 import org.apache.http.entity.mime.MultipartEntity;
 import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.params.SyncBasicHttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
-
+import org.springframework.util.StringUtils;
 
 /**
- * @author Pery
  * 自定义参数的Httpclient。<br>
  * 提供httpGet，httpPost两种传送消息的方式<br>
  * 提供httpPost上传文件的方式
@@ -47,26 +49,27 @@ import org.apache.http.util.EntityUtils;
 public class QHttpClient {
 
     // SDK默认参数设置
-    public static final int CONNECTION_TIMEOUT = 10000;
-    public static final int CON_TIME_OUT_MS = 10000;
-    public static final int SO_TIME_OUT_MS = 10000;
+    public static final int CON_TIME_OUT_MS = 5000;
+    public static final int SO_TIME_OUT_MS = 5000;
     public static final int MAX_CONNECTIONS_PER_HOST = 20;
     public static final int MAX_TOTAL_CONNECTIONS = 200;
     
-  //当前使用cookie
-    private CookieBean cookieBean;
+    private int conTimeOutMs;
+    private int soTimeOutMs;
+
     // 日志输出
     private static Log log = LogFactory.getLog(QHttpClient.class);
 
     private DefaultHttpClient httpClient;
-    public QHttpClient(){
-    	 this(MAX_CONNECTIONS_PER_HOST, MAX_TOTAL_CONNECTIONS, CON_TIME_OUT_MS, SO_TIME_OUT_MS,null,null);
+    private HttpContext httpContext;
+    public QHttpClient() {
+        this(MAX_CONNECTIONS_PER_HOST, MAX_TOTAL_CONNECTIONS, CON_TIME_OUT_MS, SO_TIME_OUT_MS,null,null);
     }
-    public QHttpClient(CrawlPolicyBean crawlPolicy) {
-        this(MAX_CONNECTIONS_PER_HOST, MAX_TOTAL_CONNECTIONS, CON_TIME_OUT_MS, SO_TIME_OUT_MS,null,crawlPolicy);
+    public void initialCookie(CookieStore cookieStore){
+    	httpClient.setCookieStore(cookieStore);
     }
-    public QHttpClient(List<RouteCfg> routeCfgList, CrawlPolicyBean crawlPolicy){
-    	 this(MAX_CONNECTIONS_PER_HOST, MAX_TOTAL_CONNECTIONS, CON_TIME_OUT_MS, SO_TIME_OUT_MS,routeCfgList,crawlPolicy);
+    public void destroyCustomCookie(){
+    	httpClient.setCookieStore(null);
     }
     /**
      * 个性化配置连接管理器
@@ -75,32 +78,30 @@ public class QHttpClient {
      * @param conTimeOutMs  连接超时
      * @param soTimeOutMs socket超时
      * @param routeCfgList 特殊路由配置列表，若无请填null
-     * @param crawlPolicy 抓取策略，包括了代理ip以及cookie信息
+     * @param proxy 代理设置，若无请填null
      */
-    public QHttpClient(int maxConnectionsPerHost, int maxTotalConnections, int conTimeOutMs, int soTimeOutMs, List<RouteCfg> routeCfgList,CrawlPolicyBean crawlPolicy) {
+    public QHttpClient(int maxConnectionsPerHost, int maxTotalConnections, int conTimeOutMs, int soTimeOutMs, List<RouteCfg> routeCfgList, HttpHost proxy) {
 
+        this.conTimeOutMs=conTimeOutMs;
+        this.soTimeOutMs=soTimeOutMs;
         // 使用默认的 socket factories 注册 "http" & "https" protocol scheme
         SchemeRegistry supportedSchemes = new SchemeRegistry();
         supportedSchemes.register(new Scheme("http", 80, PlainSocketFactory.getSocketFactory()));
         supportedSchemes.register(new Scheme("https", 443, SSLSocketFactory.getSocketFactory()));
         ThreadSafeClientConnManager connectionManager = new ThreadSafeClientConnManager(supportedSchemes);
-
         // 参数设置
         HttpParams httpParams = new SyncBasicHttpParams();
         HttpProtocolParams.setVersion(httpParams, HttpVersion.HTTP_1_1);
 
         httpParams.setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, conTimeOutMs);
         httpParams.setParameter(CoreConnectionPNames.SO_TIMEOUT, soTimeOutMs);
-        //与之前两行作用相同
-//        HttpConnectionParams.setConnectionTimeout(httpParams, conTimeOutMs);
-//        HttpConnectionParams.setSoTimeout(httpParams, soTimeOutMs);
         
         HttpProtocolParams.setUseExpectContinue(httpParams, false);
 
         connectionManager.setDefaultMaxPerRoute(maxConnectionsPerHost);
         connectionManager.setMaxTotal(maxTotalConnections);
 
-        HttpClientParams.setCookiePolicy(httpParams, CookiePolicy.BROWSER_COMPATIBILITY);
+        HttpClientParams.setCookiePolicy(httpParams, CookiePolicy.IGNORE_COOKIES);
         
         // 对特定路由修改最大连接数 
         if(null!=routeCfgList){
@@ -109,70 +110,109 @@ public class QHttpClient {
                 connectionManager.setMaxForRoute(new HttpRoute(localhost), routeCfg.getMaxConnetions());
             }
         }  
+        
         httpClient = new DefaultHttpClient(connectionManager, httpParams);
-        if(crawlPolicy.getCookieBean()!=null){
-        httpClient.setCookieStore(crawlPolicy.getCookieBean().getCookieStore());
-        this.cookieBean = crawlPolicy.getCookieBean();
-        }
-        //设置代理
-        if(null!= crawlPolicy.getProxy()){
-            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, crawlPolicy.getProxy());
-        }
+        httpContext = new BasicHttpContext();
+/*        //设置代理
+        if(null!=proxy){
+            httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        }*/
     }
 
+    
     /**
-     * Get方法传送消息
+     * Get方法传送消息（无压缩）
      * 
      * @param url  连接的URL
      * @param queryString  请求参数串
      * @return 服务器返回的信息
      * @throws Exception
      */
-    public String httpGet(String url, String queryString) throws Exception {
+    public String simpleHttpGet(String url, String queryString,CookieStore cookieStore,HttpHost proxyHost) throws Exception {
+
         String responseData = null;
         if (queryString != null && !queryString.equals("")) {
-            url += "&" + queryString;
+            url += "?" + queryString;
+        }
+        log.info("QHttpClient simpleHttpGet [1] url = " + url);
+
+        HttpGet httpGet = new HttpGet(url);
+        httpGet.getParams().setParameter("http.socket.timeout", conTimeOutMs);
+        if(cookieStore != null){
+        	httpClient.setCookieStore(cookieStore);
+        }
+        if(proxyHost!=null){
+        	httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxyHost);
+        }
+        HttpResponse response;
+        response = httpClient.execute(httpGet,httpContext);
+        log.info("QHttpClient simpleHttpGet [2] StatusLine : " + response.getStatusLine());
+        responseData=EntityUtils.toString(response.getEntity());
+        httpGet.abort();
+        log.info("QHttpClient simpleHttpGet [3] Response = " + responseData.toString());
+
+        return responseData.toString();
+    }
+    
+    public String httpGet(String url) throws Exception{
+    	return this.httpGet(url, null, null, null);
+    }
+    public String http(String url,CookieStore cookieStore) throws Exception{
+    	return this.httpGet(url, null, cookieStore, null);
+    }
+    public String http(String url,CookieStore cookieStore,HttpHost proxyHost) throws Exception{
+    	return this.httpGet(url, null, cookieStore, proxyHost);
+    }
+    /**
+     * Get方法传送消息
+     * 
+     * @param url  连接的URL
+     * @param queryString  请求参数串
+     * @param cookieStore 请求需要的cookie
+     * @param proxyHost 请求用到的代理服务器 
+     * @return 服务器返回的信息
+     * @throws Exception
+     */
+    public String httpGet(String url, String queryString,CookieStore cookieStore,HttpHost proxyHost) throws Exception {
+    	
+        StringBuilder responseData = new StringBuilder();
+        if (StringUtils.hasText(queryString)) {
+            url += "?" + queryString;
         }
         log.info("QHttpClient httpGet [1] url = " + url);
-        System.out.println(url);
+
         HttpGet httpGet = new HttpGet(url);
-        httpGet.getParams().setParameter("http.socket.timeout", new Integer(CONNECTION_TIMEOUT));
-        httpGet.setHeader("User-Agent", "Mozilla/5.0 (Windows; U; Windows NT 5.1; zh-CN; rv:1.9.1.2)");
-        if(this.cookieBean!=null)
-        httpGet.addHeader("Cookie",this.cookieBean.getStrValue()); 
-        
-        HttpResponse response = httpClient.execute(httpGet);
-        //if(this.cookieBean!=null){
-     //   cookieProcess();
-        //}
+        if(cookieStore != null){
+        	httpClient.setCookieStore(cookieStore);
+        }
+        if(proxyHost!=null){
+        	httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxyHost);
+        }
+        httpGet.addHeader("Accept-Encoding", "gzip,deflate,sdch");
+        httpGet.getParams().setParameter("http.socket.timeout", conTimeOutMs);
+
+        HttpResponse response;
+        response = httpClient.execute(httpGet,httpContext);
+        log.info("QHttpClient httpGet [2] StatusLine : " + response.getStatusLine());
+
         try {
-            log.info("QHttpClient httpGet [2] StatusLine : " + response.getStatusLine());
-            responseData = EntityUtils.toString(response.getEntity());
+            byte[] b=new byte[2048];
+            GZIPInputStream gzin = new GZIPInputStream(response.getEntity().getContent());
+            int length=0;
+            while((length=gzin.read(b))!=-1){
+                responseData.append(new String(b,0,length));
+            }
+            gzin.close();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             httpGet.abort();
         }
-        return responseData;
+        log.info("QHttpClient httpGet [3] Response = " + responseData.toString());
+
+        return responseData.toString();
     }
-    
-    private void cookieProcess(){
-    	BasicCookieStore storeCookie = (BasicCookieStore) httpClient.getCookieStore();
-    	 List<Cookie> cookies = httpClient.getCookieStore().getCookies();    
-    	 if(cookies.isEmpty()){
-    		log.info("没有cookie从服务器返回！");
-    	 }else{
-    		 String cookieStr = CookieUtil.cookieToString(storeCookie);
-    		 if(cookieStr.equals(this.cookieBean.getStrValue())){
-    			 log.info("cookie is not alter!");
-    		 }else{
-    			 log.info("new cookie is:"+cookieStr+"\n old cookie is:"+this.cookieBean.getStrValue());
-    			 this.cookieBean.setStrValue(cookieStr);
-    		 }
-    	 }    	
-    }
-    
-    
+
     /**
      * Post方法传送消息
      * 
@@ -182,14 +222,15 @@ public class QHttpClient {
      * @throws Exception
      */
     public String httpPost(String url, String queryString) throws Exception {
-        String responseData = null;
+        StringBuilder responseData = new StringBuilder();
         URI tmpUri = new URI(url);
         URI uri = URIUtils.createURI(tmpUri.getScheme(), tmpUri.getHost(), tmpUri.getPort(), tmpUri.getPath(),
                 queryString, null);
         log.info("QHttpClient httpPost [1] url = " + uri.toURL());
 
         HttpPost httpPost = new HttpPost(uri);
-        httpPost.getParams().setParameter("http.socket.timeout", new Integer(CONNECTION_TIMEOUT));
+        httpPost.addHeader("Accept-Encoding", "gzip,deflate,sdch");
+        httpPost.getParams().setParameter("http.socket.timeout", conTimeOutMs);
         if (queryString != null && !queryString.equals("")) {
             StringEntity reqEntity = new StringEntity(queryString);
             // 设置类型
@@ -197,20 +238,24 @@ public class QHttpClient {
             // 设置请求的数据
             httpPost.setEntity(reqEntity);
         }
-        
+        HttpResponse response = httpClient.execute(httpPost,httpContext);
+        log.info("QHttpClient httpPost [2] StatusLine = " + response.getStatusLine());
+
         try {
-            HttpResponse response = httpClient.execute(httpPost);
-            cookieProcess();
-            log.info("QHttpClient httpPost [2] StatusLine = " + response.getStatusLine());
-            responseData = EntityUtils.toString(response.getEntity());
-            log.info("QHttpClient httpPost [3] responseData = " + responseData);
+            byte[] b=new byte[2048];
+            GZIPInputStream gzin = new GZIPInputStream(response.getEntity().getContent());
+            int length=0;
+            while((length=gzin.read(b))!=-1){
+                responseData.append(new String(b,0,length));
+            }
+            gzin.close();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             httpPost.abort();
         }
-
-        return responseData;
+        log.info("QHttpClient httpPost [3] Response = " + responseData.toString());
+        return responseData.toString();
     }
 
     /**
@@ -223,7 +268,7 @@ public class QHttpClient {
      */
     public String httpPostWithFile(String url, String queryString, List<NameValuePair> files) throws Exception {
 
-        String responseData = null;
+        StringBuilder responseData = new StringBuilder();
 
         URI tmpUri = new URI(url);
         URI uri = URIUtils.createURI(tmpUri.getScheme(), tmpUri.getHost(), tmpUri.getPort(), tmpUri.getPath(),
@@ -231,6 +276,7 @@ public class QHttpClient {
         log.info("QHttpClient httpPostWithFile [1]  uri = " + uri.toURL());
         MultipartEntity mpEntity = new MultipartEntity();
         HttpPost httpPost = new HttpPost(uri);
+        httpPost.addHeader("Accept-Encoding", "gzip,deflate,sdch");
         StringBody stringBody;
         FileBody fileBody;
         File targetFile;
@@ -259,18 +305,25 @@ public class QHttpClient {
         // log.info("---------- Entity Content Type = "+mpEntity.getContentType());
 
         httpPost.setEntity(mpEntity);
+        HttpResponse response = httpClient.execute(httpPost,httpContext);
+        log.info("QHttpClient httpPostWithFile [2] StatusLine = " + response.getStatusLine());
 
         try {
-            HttpResponse response = httpClient.execute(httpPost);
-            log.info("QHttpClient httpPostWithFile [2] StatusLine = " + response.getStatusLine());
-            responseData = EntityUtils.toString(response.getEntity());
+            byte[] b=new byte[2048];
+            GZIPInputStream gzin = new GZIPInputStream(response.getEntity().getContent());
+            int length=0;
+            while((length=gzin.read(b))!=-1){
+                responseData.append(new String(b,0,length));
+            }
+            gzin.close();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             httpPost.abort();
         }
-        log.info("QHttpClient httpPostWithFile [3] responseData = " + responseData);
-        return responseData;
+        
+        log.info("QHttpClient httpPostWithFile [3] Response = " + responseData.toString());
+        return responseData.toString();
     }
 
     /**
@@ -282,5 +335,21 @@ public class QHttpClient {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public int getConTimeOutMs() {
+        return conTimeOutMs;
+    }
+
+    public void setConTimeOutMs(int conTimeOutMs) {
+        this.conTimeOutMs = conTimeOutMs;
+    }
+
+    public int getSoTimeOutMs() {
+        return soTimeOutMs;
+    }
+
+    public void setSoTimeOutMs(int soTimeOutMs) {
+        this.soTimeOutMs = soTimeOutMs;
     }
 }

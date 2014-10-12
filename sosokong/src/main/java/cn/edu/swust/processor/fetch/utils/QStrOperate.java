@@ -1,4 +1,4 @@
-package cn.edu.swust.processor.fetch.httputil;
+package cn.edu.swust.processor.fetch.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
