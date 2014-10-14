@@ -1,4 +1,4 @@
-package cn.edu.swust.processor.writer.customdazong;
+package cn.edu.swust.custom.dazong;
 
 import java.util.Date;
 
