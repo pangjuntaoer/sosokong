@@ -11,7 +11,7 @@ public class CandidateURI implements Comparable<CandidateURI>{
 	 */
 	private SeedTask seedTask;
 	private boolean isSeed=false;
-	private String outLinks;
+	private String candidateURI;
 	/**
 	 * 种子转换为CandidateURI
 	 * @param seedTask
@@ -19,7 +19,7 @@ public class CandidateURI implements Comparable<CandidateURI>{
 	public CandidateURI(SeedTask seedTask){
 		this.isSeed=true;
 		this.seedTask=seedTask;
-		this.outLinks=seedTask.getSeedUrl();
+		this.candidateURI=seedTask.getSeedUrl();
 	}
 	public SeedTask getSeedTask() {
 	Preconditions.checkArgument(this.seedTask!=null,
@@ -43,11 +43,11 @@ public class CandidateURI implements Comparable<CandidateURI>{
 	public void setSeed(boolean isSeed) {
 		this.isSeed = isSeed;
 	}
-	public String getOutLinks() {
-		return outLinks;
+	public String getCandidateURI() {
+		return candidateURI;
 	}
-	public void setOutLinks(String outLinks) {
-		this.outLinks = outLinks;
+	public void setCandidateURI(String outLinks) {
+		this.candidateURI = outLinks;
 	}
 	
 }

@@ -1,5 +1,7 @@
 package cn.edu.swust.uri;
 
+import java.util.List;
+
 import org.apache.commons.codec.digest.DigestUtils;
 
 import com.google.common.base.Objects;
@@ -15,10 +17,13 @@ public abstract class SeedTask {
 	 */
 	private String seedUrl;
 	/**
+	 * 是否模拟登陆
+	 */
+	private boolean analogLogin=false;
+	/**
 	 * 种子指纹（字符串唯一标示）
 	 */
 	private String SeedFingerprint;
-	
 	private int seedFingerprintIntValue;
 	/**
 	 * 外链抽取url正则表达式
@@ -30,12 +35,21 @@ public abstract class SeedTask {
 	 */
 	private String contentUrlRegex;
 	/**
+	 * 重定向地址正则，（一般针对，访问请求异常，如验证码页面）；
+	 */
+	private String redirectRegex;
+	/**
 	 * 抓取深度
 	 */
 	private int fetchHeigh;
+	/**
+	 * 抽取是否通过Jsoup抽取
+	 */
+	private boolean byJsoup=false;
 	public String getSeedUrl() {
 		return seedUrl;
 	}
+	
 	/**
 	 * 生成种子任务指纹
 	 * 不允许覆盖
@@ -81,5 +95,28 @@ public abstract class SeedTask {
 	public void setSeedFingerprintIntValue(int seedFingerprintIntValue) {
 		this.seedFingerprintIntValue = seedFingerprintIntValue;
 	}
+	public String getRedirectRegex() {
+		return redirectRegex;
+	}
+	public void setRedirectRegex(String redirectRegex) {
+		this.redirectRegex = redirectRegex;
+	}
+
+	public boolean isAnalogLogin() {
+		return analogLogin;
+	}
+
+	public void setAnalogLogin(boolean analogLogin) {
+		this.analogLogin = analogLogin;
+	}
+
+	public boolean isByJsoup() {
+		return byJsoup;
+	}
+
+	public void setByJsoup(boolean byJsoup) {
+		this.byJsoup = byJsoup;
+	}
+	
 	
 }

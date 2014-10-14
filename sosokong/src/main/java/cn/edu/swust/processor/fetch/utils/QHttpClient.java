@@ -1,19 +1,26 @@
 package cn.edu.swust.processor.fetch.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+import javax.net.ssl.SSLHandshakeException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpHost;
+import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpVersion;
 import org.apache.http.NameValuePair;
+import org.apache.http.NoHttpResponseException;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.HttpRequestRetryHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.CookiePolicy;
@@ -37,9 +44,12 @@ import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
 import org.apache.http.params.SyncBasicHttpParams;
 import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.apache.http.util.EntityUtils;
 import org.springframework.util.StringUtils;
+
+import cn.edu.swust.utils.StaticParameters;
 
 /**
  * 自定义参数的Httpclient。<br>
@@ -62,6 +72,7 @@ public class QHttpClient {
 
     private DefaultHttpClient httpClient;
     private HttpContext httpContext;
+    private int httpResponseCode=0;
     public QHttpClient() {
         this(MAX_CONNECTIONS_PER_HOST, MAX_TOTAL_CONNECTIONS, CON_TIME_OUT_MS, SO_TIME_OUT_MS,null,null);
     }
@@ -112,14 +123,42 @@ public class QHttpClient {
         }  
         
         httpClient = new DefaultHttpClient(connectionManager, httpParams);
+        httpClient.setHttpRequestRetryHandler(httpRequestRetryHandler);
         httpContext = new BasicHttpContext();
 /*        //设置代理
         if(null!=proxy){
             httpClient.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
         }*/
     }
-
-    
+    /**
+     * 重试策略
+     */
+    protected static HttpRequestRetryHandler httpRequestRetryHandler;
+    static{
+    	httpRequestRetryHandler = new HttpRequestRetryHandler() {
+        public boolean retryRequest(IOException exception, int executionCount, HttpContext context) {
+            if (executionCount >= StaticParameters.fetchRetryCount) {
+                // 如果超过最大重试次数，那么就不要继续了
+                return false;
+            }
+            if (exception instanceof NoHttpResponseException) {
+                // 如果服务器丢掉了连接，那么就重试
+                return true;
+            }
+            if (exception instanceof SSLHandshakeException) {
+                // 不要重试SSL握手异常
+                return false;
+            }
+            HttpRequest request = (HttpRequest) context.getAttribute(ExecutionContext.HTTP_REQUEST);
+            boolean idempotent = !(request instanceof HttpEntityEnclosingRequest);
+            if (idempotent) {
+                // 如果请求被认为是幂等的，那么就重试
+                return true;
+            }
+            return false;
+        }
+    };
+   }
     /**
      * Get方法传送消息（无压缩）
      * 
@@ -145,7 +184,9 @@ public class QHttpClient {
         	httpGet.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxyHost);
         }
         HttpResponse response;
+        httpResponseCode = 0;
         response = httpClient.execute(httpGet,httpContext);
+        httpResponseCode = response.getStatusLine().getStatusCode();
         log.info("QHttpClient simpleHttpGet [2] StatusLine : " + response.getStatusLine());
         responseData=EntityUtils.toString(response.getEntity());
         httpGet.abort();
@@ -192,7 +233,9 @@ public class QHttpClient {
         httpGet.getParams().setParameter("http.socket.timeout", conTimeOutMs);
 
         HttpResponse response;
+        httpResponseCode = 0;
         response = httpClient.execute(httpGet,httpContext);
+        httpResponseCode = response.getStatusLine().getStatusCode();
         log.info("QHttpClient httpGet [2] StatusLine : " + response.getStatusLine());
 
         try {
@@ -238,9 +281,10 @@ public class QHttpClient {
             // 设置请求的数据
             httpPost.setEntity(reqEntity);
         }
+        httpResponseCode = 0;
         HttpResponse response = httpClient.execute(httpPost,httpContext);
         log.info("QHttpClient httpPost [2] StatusLine = " + response.getStatusLine());
-
+        httpResponseCode = response.getStatusLine().getStatusCode();
         try {
             byte[] b=new byte[2048];
             GZIPInputStream gzin = new GZIPInputStream(response.getEntity().getContent());
@@ -282,7 +326,7 @@ public class QHttpClient {
         File targetFile;
         String filePath;
         FormBodyPart fbp;
-
+        
         List<NameValuePair> queryParamList = QStrOperate.getQueryParamsList(queryString);
         for (NameValuePair queryParam : queryParamList) {
             stringBody = new StringBody(queryParam.getValue(), Charset.forName("UTF-8"));
@@ -305,7 +349,9 @@ public class QHttpClient {
         // log.info("---------- Entity Content Type = "+mpEntity.getContentType());
 
         httpPost.setEntity(mpEntity);
+        httpResponseCode = 0;
         HttpResponse response = httpClient.execute(httpPost,httpContext);
+        httpResponseCode = response.getStatusLine().getStatusCode();
         log.info("QHttpClient httpPostWithFile [2] StatusLine = " + response.getStatusLine());
 
         try {
@@ -352,4 +398,18 @@ public class QHttpClient {
     public void setSoTimeOutMs(int soTimeOutMs) {
         this.soTimeOutMs = soTimeOutMs;
     }
+	public HttpContext getHttpContext() {
+		return httpContext;
+	}
+	public void setHttpContext(HttpContext httpContext) {
+		this.httpContext = httpContext;
+	}
+	public int getHttpResponseCode() {
+		return httpResponseCode;
+	}
+	public void setHttpResponseCode(int httpResponseCode) {
+		this.httpResponseCode = httpResponseCode;
+	}
+    
+    
 }
