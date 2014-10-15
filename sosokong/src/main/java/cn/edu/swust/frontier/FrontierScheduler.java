@@ -89,9 +89,22 @@ public class FrontierScheduler {
 			String value = uri.getContentMd5()+"|"+System.currentTimeMillis();
 			BerkelyDataSource.openDatabase();
 			BerkelyDataSource.writeToDatabase(key, value, true);
+			BerkelyDataSource.closeDatabase();
 		} finally {
 			lock.unlock();
 		}
+	}
+	public String uriFethInfo(String candidateURI){
+		lock.lock();
+		String info="";
+		try {
+			String key = DigestUtils.md5Hex(candidateURI);
+			BerkelyDataSource.openDatabase();
+			info = BerkelyDataSource.readFromDatabase(key);
+		} finally {
+			lock.unlock();
+		}
+		return info;
 	}
 /**
  * 判断当前这个任务本轮是否完成抓取
