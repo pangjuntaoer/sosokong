@@ -1,7 +1,5 @@
 package cn.edu.swust.uri;
 
-import org.springframework.scheduling.config.Task;
-
 import com.google.common.base.Preconditions;
 
 public class CandidateURI implements Comparable<CandidateURI>{
@@ -12,6 +10,7 @@ public class CandidateURI implements Comparable<CandidateURI>{
 	private SeedTask seedTask;
 	private boolean isSeed=false;
 	private String candidateURI;
+	private String reference;
 	/**
 	 * 种子转换为CandidateURI
 	 * @param seedTask
@@ -21,6 +20,15 @@ public class CandidateURI implements Comparable<CandidateURI>{
 		this.seedTask=seedTask;
 		this.candidateURI=seedTask.getSeedUrl();
 	}
+	public CandidateURI(SeedTask seedTask,String url,String reference){
+		this.seedTask = seedTask;
+		this.candidateURI = url;
+		this.reference = reference;
+	}
+	/**
+	 * 获得该候选URI所属的种子任务
+	 * @return SeedTask 种子任务
+	 */
 	public SeedTask getSeedTask() {
 	Preconditions.checkArgument(this.seedTask!=null,
 				"错误：该CandidateURI所属种子任务为空了！");
@@ -48,6 +56,12 @@ public class CandidateURI implements Comparable<CandidateURI>{
 	}
 	public void setCandidateURI(String outLinks) {
 		this.candidateURI = outLinks;
+	}
+	public String getReference() {
+		return reference;
+	}
+	public void setReference(String reference) {
+		this.reference = reference;
 	}
 	
 }

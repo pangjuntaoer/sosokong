@@ -1,21 +1,22 @@
-package cn.edu.swust.processor.postlinks;
+package cn.edu.swust.processor.writer;
 
 import org.jsoup.nodes.Document;
 
-import cn.edu.swust.processor.writer.AbstractWriterProcessor;
 import cn.edu.swust.uri.CrawlURI;
-
+/**
+ * 默认内容处理方法
+ * @author pery
+ *
+ */
 public class DefaultWriterProcessor extends AbstractWriterProcessor {
 
 	@Override
 	public void extractAndWriteByJsoup(CrawlURI crawlURI, Document doc) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void extractAndWriteByRegext(CrawlURI crawlURI) {
-		// TODO Auto-generated method stub
 		
 	}
 

@@ -5,19 +5,20 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.edu.swust.seed.invoke.SeedInject;
 import cn.edu.swust.uri.CandidateURI;
+import cn.edu.swust.uri.CrawlURI;
 import cn.edu.swust.uri.SeedTask;
 
 /**
- * 链接边界调度器，负责控制外链的管理和控制
- * 要求线程安全，每次仅仅单线程读写（可考虑读写分离锁来控制）
- * @author pery
- * 2014年10月08日21:31:39
+ * 链接边界调度器，负责控制外链的管理和控制 要求线程安全，每次仅仅单线程读写（可考虑读写分离锁来控制）
+ * 
+ * @author pery 2014年10月08日21:31:39
  */
-public class FrontierScheduler{
+public class FrontierScheduler {
 	/**
 	 * 
 	 * 种子任务队列
@@ -42,6 +43,7 @@ public class FrontierScheduler{
 	 * 显示锁来保证线程安全
 	 */
 	private Lock lock = new ReentrantLock(false);
+
 	/**
 	 * 初始化边界器 这里可以实现抓取备份恢复（暂时未实现）
 	 */
@@ -53,30 +55,56 @@ public class FrontierScheduler{
 			e.printStackTrace();
 		}
 	}
+
 	/**
-	 * 获取下一个待抓取的外链
-	 * 循环轮询，直到条件溢出
+	 * 获取下一个待抓取的外链 循环轮询，直到条件溢出
+	 * 
 	 * @return
 	 */
 	public CandidateURI next() {
 		lock.lock();
-		CandidateURI url= null;
+		CandidateURI url = null;
 		try {
-			while(true){
-			 url = this.workQueue.nextCandidateURI();
-			 if(url!=null){
-				 break;
-			 }
+			while (true) {
+				url = this.workQueue.nextCandidateURI();
+				if (url != null) {
+					break;
+				}
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			lock.unlock();
 		}
 		return url;
 	}
+/**
+ * 存储内容当前链接抓取的key外链,value=md5+"|"+timestamp
+ * @param uri
+ */
+	public void setupHadFinish(CrawlURI uri) {
+		lock.lock();
+		try {
+			String key = DigestUtils.md5Hex(uri.getCandidateURI());
+			String value = uri.getContentMd5()+"|"+System.currentTimeMillis();
+			BerkelyDataSource.openDatabase();
+			BerkelyDataSource.writeToDatabase(key, value, true);
+		} finally {
+			lock.unlock();
+		}
+	}
+/**
+ * 判断当前这个任务本轮是否完成抓取
+ * @param seedTask
+ * @return
+ */
+	public boolean hasFinished(SeedTask seedTask){
+		//
+		return false;
+	}
 	/**
 	 * 添加一个Candidate
+	 * 
 	 * @param outLink
 	 */
 	public void put(CandidateURI outLink) {
@@ -85,38 +113,61 @@ public class FrontierScheduler{
 			this.workQueue.addCandidateURI(outLink);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			lock.unlock();
 		}
 	}
+
 	/**
 	 * 批量添加
+	 * 
 	 * @param outLinks
 	 */
-	public void putAll(List<CandidateURI> outLinks){
+	public void putAll(List<CandidateURI> outLinks) {
 		lock.lock();
 		try {
 			this.workQueue.addAllCandidateURI(outLinks);
 		} catch (Exception e) {
 			e.printStackTrace();
-		}finally{
+		} finally {
 			lock.unlock();
 		}
-	} 
+	}
+
 	/**
 	 * 添加一个新的种子任务
+	 * 
 	 * @param task
 	 */
-	private void addOneSeedTask(SeedTask task){
-		this.seedTasks.add(task);
-		this.workQueue.addTaskSeed(task);
+	public void addOneSeedTask(SeedTask task) {
+		lock.lock();
+		try {
+			this.seedTasks.add(task);
+			this.workQueue.addTaskSeed(task);
+		} finally {
+			lock.unlock();
+		}
 	}
+
 	/**
 	 * 删除一个已经存在的任务
+	 * 
 	 * @param task
 	 */
-	private void removeSeedTask(SeedTask task){
-		
+	public void removeSeedTask(SeedTask task) {
+		lock.lock();
+		try {
+			this.workQueue.removeTask(task);
+			for (int i = 0; i < seedTasks.size(); i++) {
+				if (task.getSeedFingerprint().equals(
+						seedTasks.get(i).getSeedFingerprint())) {
+					seedTasks.remove(i);
+					break;
+				}
+			}
+		} finally {
+			lock.unlock();
+		}
 	}
-	
+
 }

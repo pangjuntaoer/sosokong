@@ -3,6 +3,8 @@ package cn.edu.swust.uri;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.codec.digest.DigestUtils;
+
 import com.google.common.collect.Lists;
 
 public class CrawlURI extends CandidateURI {
@@ -11,12 +13,21 @@ public class CrawlURI extends CandidateURI {
 		super(seedTask);
 	}
 	private String content;
+	private String contentMd5;
 	private List<String> outLinks=Lists.newArrayList();
 	public String getContent() {
 		return content;
 	}
 	public void setContent(String content) {
 		this.content = content;
+		this.contentMd5=DigestUtils.md5Hex(content);
+	}
+	
+	public String getContentMd5() {
+		return contentMd5;
+	}
+	public void setContentMd5(String contentMd5) {
+		this.contentMd5 = contentMd5;
 	}
 	/**
 	 * 获取当前外链的host
