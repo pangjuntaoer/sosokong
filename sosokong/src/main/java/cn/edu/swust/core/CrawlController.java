@@ -1,4 +1,4 @@
-package cn.edu.swust.controller;
+package cn.edu.swust.core;
 
 import cn.edu.swust.frontier.FrontierScheduler;
 import cn.edu.swust.processor.ProcessorChain;

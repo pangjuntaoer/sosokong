@@ -3,8 +3,12 @@ package cn.edu.swust.uri;
 import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.client.CookieStore;
+
+import cn.edu.swust.utils.CookieUtil;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 
 /**
  * 种子任务类(抽象)
@@ -46,6 +50,11 @@ public abstract class SeedTask {
 	 * 抽取是否通过Jsoup抽取
 	 */
 	private boolean byJsoup=false;
+	/**
+	 * cookie，字符串
+	 */
+	private List<String> cookieStr;
+	private List<CookieStore> cookieStores;
 	public String getSeedUrl() {
 		return seedUrl;
 	}
@@ -117,6 +126,22 @@ public abstract class SeedTask {
 	public void setByJsoup(boolean byJsoup) {
 		this.byJsoup = byJsoup;
 	}
-	
-	
+
+	public List<String> getCookieStr() {
+		return cookieStr;
+	}
+
+	public void setCookieStr(List<String> cookieStr) {
+		this.cookieStr = cookieStr;
+	}
+	///以后需要重写，cookie策略
+	public CookieStore getOneCookieStore() throws Exception{
+		if(cookieStores==null){
+			cookieStores = Lists.newArrayList();
+			for (int i = 0; i < cookieStr.size(); i++) {
+				cookieStores.add(CookieUtil.stringToCookie(cookieStr.get(i)));
+			}
+		}
+			return cookieStores.get(0);
+	}
 }

@@ -12,16 +12,13 @@ public class ProcessResult {
         PROCEED,
 
         /**
-         * URI无效，应该跳过处理
+         * URI无效，应该跳过处理,直接结束
          */
         FINISH,
 
-        /**
-         * The Processor has specified the next processor for the URI.  The 
-         * china should skip forward to that processor instead of the reguarly
-         * scheduled next processor.
-         */
-        JUMP,
+        EXTRACT,
+        WRITER,
+        POSTLINK,
     }
     
     final public static ProcessResult PROCEED = 
@@ -29,34 +26,17 @@ public class ProcessResult {
     
     final public static ProcessResult FINISH =
         new ProcessResult(ProcessStatus.FINISH);
-    
+    final public static ProcessResult EXTRACT =
+            new ProcessResult(ProcessStatus.EXTRACT);
+    final public static ProcessResult WRITER =
+            new ProcessResult(ProcessStatus.WRITER);
+    final public static ProcessResult POSTLINK =
+            new ProcessResult(ProcessStatus.POSTLINK);
     
     final private ProcessStatus status;
-    final private String jumpTarget;
     
-    
+   
     private ProcessResult(ProcessStatus status) {
-        this(status, null);
-    }
-    
-    
-    private ProcessResult(ProcessStatus status, String jumpName) {
-        this.status = status;
-        this.jumpTarget = jumpName;
-    }
-    
-    
-    public ProcessStatus getProcessStatus() {
-        return status;
-    }
-    
-    
-    public String getJumpTarget() {
-        return jumpTarget;
-    }
-    
-    
-    public static ProcessResult jump(String jumpTarget) {
-        return new ProcessResult(ProcessStatus.JUMP, jumpTarget);
+    	 this.status = status;
     }
 }

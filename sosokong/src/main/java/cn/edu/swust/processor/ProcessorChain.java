@@ -21,10 +21,17 @@ private Processor postLinksProcessor;
 public void beginProcess(CandidateURI outLink){
 	CrawlURI uri = (CrawlURI)outLink;
 	try {
-		this.fetchProcessor.process(uri);
-		this.extractProcessor.process(uri);
-		this.writerProcessor.process(uri);
-		this.postLinksProcessor.process(uri);
+		ProcessResult fr = this.fetchProcessor.process(uri);
+		if(fr.equals(ProcessResult.PROCEED)){
+			ProcessResult er = this.extractProcessor.process(uri);
+			if(er.equals(ProcessResult.PROCEED)){
+				ProcessResult wr = this.writerProcessor.process(uri);
+				ProcessResult pr = this.postLinksProcessor.process(uri);
+			}
+		}else if(fr.equals(ProcessResult.FINISH)){
+			this.postLinksProcessor.process(uri);
+		}
+		
 	} catch (Exception e) {
 	}
 }

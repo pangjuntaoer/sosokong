@@ -198,10 +198,10 @@ public class QHttpClient {
     public String httpGet(String url) throws Exception{
     	return this.httpGet(url, null, null, null);
     }
-    public String http(String url,CookieStore cookieStore) throws Exception{
+    public String httpGet(String url,CookieStore cookieStore) throws Exception{
     	return this.httpGet(url, null, cookieStore, null);
     }
-    public String http(String url,CookieStore cookieStore,HttpHost proxyHost) throws Exception{
+    public String httpGet(String url,CookieStore cookieStore,HttpHost proxyHost) throws Exception{
     	return this.httpGet(url, null, cookieStore, proxyHost);
     }
     /**

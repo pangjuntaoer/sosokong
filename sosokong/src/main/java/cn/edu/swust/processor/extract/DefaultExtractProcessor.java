@@ -10,7 +10,7 @@ public class DefaultExtractProcessor extends AbstractExtractorProcessor {
 	public ProcessResult process(CrawlURI crawlURI) throws Exception {
 		this.innerExtractOutLink(crawlURI);
 		this.afterProcess(crawlURI);
-		return null;
+		return ProcessResult.PROCEED;
 	}
 
 	@Override

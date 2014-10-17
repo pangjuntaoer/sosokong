@@ -4,11 +4,11 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.http.impl.client.BasicCookieStore;
 
 import com.google.common.collect.Lists;
 
 public class CrawlURI extends CandidateURI {
-	
 	public CrawlURI(SeedTask seedTask) {
 		super(seedTask);
 	}

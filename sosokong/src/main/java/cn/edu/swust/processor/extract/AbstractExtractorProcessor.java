@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 
 import cn.edu.swust.processor.Processor;
 import cn.edu.swust.uri.CrawlURI;
+import cn.edu.swust.uri.SeedTask;
 
 public abstract class AbstractExtractorProcessor extends Processor{
 	final static String REGEX="<[aA]\\s.*?href=[\"\'\\s]*([^\"\'\\s]+)[\"\'\\s]*[^>]*>";
@@ -17,6 +18,8 @@ public abstract class AbstractExtractorProcessor extends Processor{
 	
 	public void innerExtractOutLink(CrawlURI crawlURI) throws MalformedURLException{
     	Matcher mt = pt.matcher(crawlURI.getContent());
+    	SeedTask seed = crawlURI.getSeedTask();
+    	Pattern remainUriRegex =  Pattern.compile(seed.getOutLinksRegex());
     	//绝对路径
     	URL absoluteUrl = new URL(crawlURI.getCandidateURI());
     	while(mt.find()){
@@ -24,7 +27,10 @@ public abstract class AbstractExtractorProcessor extends Processor{
     		if(!hrefValue.startsWith("http")){
     			hrefValue = new URL(absoluteUrl ,hrefValue).toString();
     		}
-    		crawlURI.addOneOutLink(hrefValue);
+    		Matcher outLinkMt= remainUriRegex.matcher(hrefValue);
+    		if(outLinkMt.find()){
+    			crawlURI.addOneOutLink(hrefValue);
+    		}
     	}
     };
     

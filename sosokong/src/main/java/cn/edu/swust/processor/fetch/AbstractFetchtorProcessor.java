@@ -8,9 +8,12 @@ import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Maps;
 
+import cn.edu.swust.frontier.FrontierScheduler;
 import cn.edu.swust.processor.Processor;
 import cn.edu.swust.processor.fetch.utils.QHttpClient;
 import cn.edu.swust.uri.CrawlURI;
@@ -18,12 +21,37 @@ import cn.edu.swust.uri.CrawlURI;
 public abstract class AbstractFetchtorProcessor extends Processor{
     // 日志输出
 private static Log log = LogFactory.getLog(AbstractFetchtorProcessor.class);
+@Autowired
+protected FrontierScheduler frontier;
 /**
  * httpClient实例集合，一个线程对应一个httClient实例；
  */
 protected static Map<String,QHttpClient> httpClientMap;
 static{
 	httpClientMap=Maps.newConcurrentMap();
+}
+/**
+ * 抓取前预处理，判断该链接是否在<strong>本轮</strong>抓取过</br>
+ * 当本轮抓取过就不在抓取了
+ * @param uri
+ * @return
+ */
+public boolean preFetchProcess(CrawlURI uri){
+	return false;
+}
+/**
+ * 抓取后内容判断处理,判断是否进行后续处理
+ * @param uri
+ * @return
+ */
+public boolean isContinueProcess(CrawlURI uri){
+	String info = this.frontier.uriFethInfo(uri.getCandidateURI());
+	if(StringUtils.hasText(info)){
+		if(uri.getContentMd5().equals(info.split("|")[0])){
+			return false;
+		}
+	}
+	return true;
 }
 /**
  * 根据线程名称获得对应的HttpClient;
