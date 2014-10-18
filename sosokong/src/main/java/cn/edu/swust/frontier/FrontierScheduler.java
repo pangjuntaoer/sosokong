@@ -3,9 +3,11 @@ package cn.edu.swust.frontier;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import cn.edu.swust.berkeley.BerkelyDBFilter;
 import cn.edu.swust.seed.invoke.SeedInject;
 import cn.edu.swust.uri.CandidateURI;
 import cn.edu.swust.uri.CrawlURI;

@@ -1,4 +1,4 @@
-package cn.edu.swust.frontier;
+package cn.edu.swust.berkeley;
 
 import java.io.File;
 import java.io.UnsupportedEncodingException;
