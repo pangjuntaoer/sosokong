@@ -180,7 +180,7 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 					Item item = extractItemInfo(e);
 					list.add(item);
 					//构造评分页码
-					candidateUrlList.add("http://www.dianping.com/shop/"+item.getId()+"/review_all?pageno=1");
+					candidateUrlList.add("http://www.dianping.com/shop/"+item.getItemId()+"/review_all?pageno=1");
 				} catch (Exception e2) {
 					e2.printStackTrace();
 				}
@@ -220,7 +220,7 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 		Item item = new Item();
 		String itemUrl = e.child(0).attr("href");//item外链
 		String itemPic = e.child(0).child(0).attr("src");//item图片uri
-		item.setId(itemUrl.substring(6));//获取item的id
+		item.setItemId(itemUrl.substring(6));//获取item的id
 		item.setItemPic(itemPic);
 		
 		Element info = e.child(1);//class=info

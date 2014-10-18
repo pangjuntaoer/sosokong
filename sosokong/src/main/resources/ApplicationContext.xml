@@ -84,13 +84,18 @@
  </bean>  
    <!-- 
  ##################################################################
-    berkeleyDBx种子过滤
+    berkeleyDBx种子过滤,任务过滤
  ##################################################################
   -->     
- <bean id="berkelyDataSource" class="cn.edu.swust.frontier.BerkelyDBFilter">
+ <bean id="berkelyDataSource" class="cn.edu.swust.berkeley.BerkelyDBFilter">
  <property name="dbName" value="fetcheduri"/>
  <property name="fileName" value="berkeleyDB"/> 
 </bean>
+<!--循环抓取的时候需要配置
+ <bean id="seedTaskBDBFilter" class="cn.edu.swust.berkeley.SeedTaskBDBFilter">
+ <property name="dbName" value="seedTaskFetched"/>
+ <property name="fileName" value="berkeleyDB"/> 
+</bean> -->
  <!-- 
  ##################################################################
    各种处理器配置（以及工具）

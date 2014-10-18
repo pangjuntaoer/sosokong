@@ -23,23 +23,23 @@
 	(
         #{item.userId,jdbcType=VARCHAR},
         #{item.itemId,jdbcType=VARCHAR},
-        #{item.rating,jdbcType=VARCHAR},
-        #{item.tast,jdbcType=VARCHAR},
-        #{item.environment,jdbcType=VARCHAR},
-        #{item.service,jdbcType=VARCHAR},
+        #{item.rating,jdbcType=FLOAT},
+        #{item.tast,jdbcType=FLOAT},
+        #{item.environment,jdbcType=FLOAT},
+        #{item.service,jdbcType=FLOAT},
         #{item.times,jdbcType=VARCHAR},
         #{item.review,jdbcType=VARCHAR},
         #{item.userPic,jdbcType=VARCHAR},
         #{item.recommend,jdbcType=VARCHAR},
         #{item.userName,jdbcType=VARCHAR},
-        #{item.userRank,jdbcType=VARCHAR},
+        #{item.userRank,jdbcType=FLOAT},
 	)
     </foreach>
 </insert>
 <insert id="insertIntoItem" parameterType="java.util.List">
 	INSERT IGNORE item 
 	(	
-        id,
+        item_id,
         name,
         star,
         cost,
@@ -48,25 +48,23 @@
         service,
         review_count,
         item_pic,
-        class_type,
         item_info,
-        item_rank
+        item_key_word
 	)
    	values 
     <foreach collection="list" index="index" item="item" separator=","> 
 	(
-        #{item.id,jdbcType=VARCHAR},
+        #{item.itemId,jdbcType=VARCHAR},
         #{item.name,jdbcType=VARCHAR},
-        #{item.star,jdbcType=VARCHAR},
-        #{item.cost,jdbcType=VARCHAR},
-        #{item.tast,jdbcType=VARCHAR},
-        #{item.environment,jdbcType=VARCHAR},
-        #{item.service,jdbcType=VARCHAR},
+        #{item.star,jdbcType=FLOAT},
+        #{item.cost,jdbcType=FLOAT},
+        #{item.tast,jdbcType=FLOAT},
+        #{item.environment,jdbcType=FLOAT},
+        #{item.service,jdbcType=FLOAT},
         #{item.reviewCount,jdbcType=VARCHAR},
         #{item.itemPic,jdbcType=VARCHAR},
-        #{item.classType,jdbcType=VARCHAR},
         #{item.itemInfo,jdbcType=VARCHAR},
-        #{item.itemRank,jdbcType=VARCHAR},
+        #{item.itemKeyWord,jdbcType=VARCHAR},
 	)
     </foreach>
 </insert>    

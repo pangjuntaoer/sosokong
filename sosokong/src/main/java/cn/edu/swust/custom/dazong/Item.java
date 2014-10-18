@@ -1,7 +1,7 @@
 package cn.edu.swust.custom.dazong;
 
 public class Item {
-private String id;
+private String itemId;
 private String name;
 private float star;
 private float cost;
@@ -15,7 +15,7 @@ private String itemInfo="";
 private String itemKeyWord;
 public String toString(){
 	StringBuffer bf = new StringBuffer();
-	bf.append("id:").append(this.id)
+	bf.append("itemId:").append(this.itemId)
 	  .append("name:").append(this.name)
 	  .append("start:").append(this.star)
 	  .append("cost:").append(this.cost)
@@ -25,11 +25,11 @@ public String toString(){
 	  .append("reviewCount:").append(this.reviewCount);
 	return bf.toString();
 }
-public String getId() {
-	return id;
+public String getItemId() {
+	return itemId;
 }
-public void setId(String id) {
-	this.id = id;
+public void setItemId(String itemId) {
+	this.itemId = itemId;
 }
 public String getName() {
 	return name;
