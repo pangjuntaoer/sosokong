@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import cn.edu.swust.uri.CandidateURI;
 import cn.edu.swust.uri.CrawlURI;
+import cn.edu.swust.utils.ObjectUtils;
 
 @Component
 public class ProcessorChain {
@@ -19,8 +20,9 @@ private Processor writerProcessor;
 private Processor postLinksProcessor;
 
 public void beginProcess(CandidateURI outLink){
-	CrawlURI uri = (CrawlURI)outLink;
 	try {
+		CrawlURI uri = new CrawlURI(outLink);
+		//ObjectUtils.fatherObject2ChildObject(outLink, uri);
 		ProcessResult fr = this.fetchProcessor.process(uri);
 		if(fr.equals(ProcessResult.PROCEED)){
 			ProcessResult er = this.extractProcessor.process(uri);
@@ -33,6 +35,7 @@ public void beginProcess(CandidateURI outLink){
 		}
 		
 	} catch (Exception e) {
+		e.printStackTrace();
 	}
 }
 }

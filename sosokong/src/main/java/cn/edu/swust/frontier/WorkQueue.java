@@ -1,6 +1,7 @@
 package cn.edu.swust.frontier;
 
 import java.util.Calendar;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,8 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -28,13 +31,22 @@ import cn.edu.swust.uri.SeedTask;
  */
 public class WorkQueue {
 	/**
+	 * 默认队列大小
+	 */
+	final static int DEFAULT_QUEUE_SIZE=100;
+	/**
 	 * 外链队列(不提供对外访问接口)
 	 */
 	private List<BlockingQueue> outLinksQueue;
 	/**
 	 * (不提供对外访问接口) 种子队列索引表，key是种子url的唯一标示 这里采用LinkedhashMap,保证存和遍历顺序一致
+	 * 根据种子查找索引对象
 	 */
 	private Map<String, SeedIndex> seedIndexMap;
+	/**
+	 * 根据索引值查找对象
+	 */
+	private SeedIndex[] seedTaskArray;
 	/**
 	 * 上次遍历取外链成功的索引
 	 */
@@ -43,7 +55,8 @@ public class WorkQueue {
 	 * 显示锁提供线程安全
 	 */
 	private Lock lock = new ReentrantLock(false);
-
+	
+	private Comparator<CandidateURI> comparator;
 	/**
 	 * 取出一个外链
 	 * 
@@ -61,12 +74,13 @@ public class WorkQueue {
 		try {
 			while (!success) {
 				nowIndex = (lastGetIndex + 1) % seedIndexMap.size();
-				seedIndex = seedIndexMap.get(nowIndex);
+				//
+				seedIndex = seedTaskArray[nowIndex];
 				if (!seedIndex.isSkip) {
 					success = true;
 					break;
 				} else {
-					lastGetIndex++;
+					lastGetIndex = nowIndex;
 				}
 			}
 			if (success && nowIndex > -1) {
@@ -138,9 +152,12 @@ public class WorkQueue {
 		try {
 			outLinksQueue = Lists.newArrayList();
 			seedIndexMap = Maps.newLinkedHashMap();
+			seedTaskArray = new SeedIndex[seedTasks.size()];
 			int i = 0;
 			for (SeedTask seed : seedTasks) {
-				seedIndexMap.put(seed.getSeedFingerprint(), new SeedIndex(i));
+				SeedIndex seedTask = new SeedIndex(i);
+				seedTaskArray[i] = seedTask;
+				seedIndexMap.put(seed.getSeedFingerprint(), seedTask);
 				BlockingQueue<CandidateURI> queue = this.getQueueInstance();
 				queue.put(new CandidateURI(seed));
 				outLinksQueue.add(queue);
@@ -210,7 +227,8 @@ public class WorkQueue {
 		} else if (this.queueType.getValue().equals("linked")) {
 			return new LinkedBlockingQueue<CandidateURI>(this.queueSize);
 		} else {
-			return new PriorityBlockingQueue<CandidateURI>(this.queueSize);
+			return new PriorityBlockingQueue<CandidateURI>(WorkQueue.DEFAULT_QUEUE_SIZE,
+					comparator);
 		}
 	}
 
@@ -257,7 +275,11 @@ public class WorkQueue {
 	}
 
 	public void setQueueSize(int queueSize) {
+		if(queueSize==0){
+			this.queueSize = Integer.MAX_VALUE;
+		}else{
 		this.queueSize = queueSize;
+		}
 	}
 
 	public long getTimeout() {
@@ -267,6 +289,15 @@ public class WorkQueue {
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
 	}
+
+	public Comparator<CandidateURI> getComparator() {
+		return comparator;
+	}
+
+	public void setComparator(Comparator<CandidateURI> comparator) {
+		this.comparator = comparator;
+	}
+	
 
 }
 

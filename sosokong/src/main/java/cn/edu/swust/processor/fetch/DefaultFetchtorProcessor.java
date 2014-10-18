@@ -11,13 +11,14 @@ import cn.edu.swust.uri.CandidateURI;
 import cn.edu.swust.uri.CrawlURI;
 import cn.edu.swust.uri.SeedTask;
 
-public class DefaultFetchtor extends AbstractFetchtorProcessor {
+public class DefaultFetchtorProcessor extends AbstractFetchtorProcessor {
 	@Override
 	public ProcessResult process(CrawlURI crawlURI) throws Exception {
 		QHttpClient httpClient = this.getOneHttpClient();
 		CookieStore cookie = crawlURI.getSeedTask().getOneCookieStore();
 		
 		String content = httpClient.httpGet(crawlURI.getCandidateURI(),cookie);
+									//simpleHttpGet(crawlURI.getCandidateURI(),null, cookie, null);
 		
 		boolean isRedirect = this.isRedirectHost(crawlURI, httpClient.getHttpContext());
 		if(!isRedirect&&httpClient.getHttpResponseCode()>=HttpStatus.SC_OK&&

@@ -3,12 +3,16 @@ package cn.edu.swust.custom.dazong;
 public class Item {
 private String id;
 private String name;
-private String star;
-private String cost;
-private String tast;
-private String environment;
-private String service;
-private String reviewCount;
+private float star;
+private float cost;
+private float tast;
+private float environment;
+private float service;
+private int reviewCount;
+
+private String itemPic;
+private String itemInfo="";
+private String itemKeyWord;
 public String toString(){
 	StringBuffer bf = new StringBuffer();
 	bf.append("id:").append(this.id)
@@ -33,41 +37,62 @@ public String getName() {
 public void setName(String name) {
 	this.name = name;
 }
-public String getStar() {
+
+public String getItemPic() {
+	return itemPic;
+}
+public void setItemPic(String itemPic) {
+	this.itemPic = itemPic;
+}
+
+public String getItemInfo() {
+	return itemInfo;
+}
+public void setItemInfo(String itemInfo) {
+	this.itemInfo = itemInfo;
+}
+public float getStar() {
 	return star;
 }
-public void setStar(String star) {
+public void setStar(float star) {
 	this.star = star;
 }
-public String getCost() {
+public float getCost() {
 	return cost;
 }
-public void setCost(String cost) {
+public void setCost(float cost) {
 	this.cost = cost;
 }
-public String getTast() {
+public float getTast() {
 	return tast;
 }
-public void setTast(String tast) {
+public void setTast(float tast) {
 	this.tast = tast;
 }
-public String getEnvironment() {
+public float getEnvironment() {
 	return environment;
 }
-public void setEnvironment(String environment) {
+public void setEnvironment(float environment) {
 	this.environment = environment;
 }
-public String getService() {
+public float getService() {
 	return service;
 }
-public void setService(String service) {
+public void setService(float service) {
 	this.service = service;
 }
-public String getReviewCount() {
+public int getReviewCount() {
 	return reviewCount;
 }
-public void setReviewCount(String reviewCount) {
+public void setReviewCount(int reviewCount) {
 	this.reviewCount = reviewCount;
 }
+public String getItemKeyWord() {
+	return itemKeyWord;
+}
+public void setItemKeyWord(String itemKeyWord) {
+	this.itemKeyWord = itemKeyWord;
+}
+
 
 }

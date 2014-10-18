@@ -16,8 +16,10 @@ public CrawlController(FrontierScheduler frontierScheduler,
 	this.processorChain = processorChain;
 }
 	public void run() {
-		CandidateURI uri = this.frontierScheduler.next();
-		processorChain.beginProcess(uri);
+		while(true){
+			CandidateURI uri = this.frontierScheduler.next();
+			processorChain.beginProcess(uri);
+		}
 	}
 
 }

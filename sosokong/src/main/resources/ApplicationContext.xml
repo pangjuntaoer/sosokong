@@ -16,7 +16,32 @@
             </list>
         </property>
     </bean>
-
+ 
+ <!-- 
+  ##################################################################
+   	启动线程池控制中心
+ ##################################################################
+  -->   
+ <bean id="exeCuteService" class="cn.edu.swust.core.ExecuteService">
+ <property name="workThreadCount" value="1"/>
+ <property name="frontier" ref="frontierScheduler" />
+ <property name="processorChain" ref="processorChain" />
+ </bean>
+  <!-- 
+  ##################################################################
+    边界调度控制
+ ##################################################################
+  -->   
+ <bean id="frontierScheduler" class="cn.edu.swust.frontier.FrontierScheduler"/>
+ 
+   <!-- 
+  ##################################################################
+    抓取处理器
+ ##################################################################
+  -->   
+ <bean id="processorChain" class="cn.edu.swust.processor.ProcessorChain"/>
+ 
+ 
  <!-- 
   ##################################################################
     种子简单注入方式（当通过Spring配置文件注入直接再次配置）
@@ -26,28 +51,46 @@
  <property name="seedTasks">
  <list>
  <bean class="cn.edu.swust.uri.SimpleSeedTask">
- 	<property name="seedUrl" value="" />
- 	<property name="outLinksRegex" value=""/>
- 	<property name="contentUrlRegex" value=""/>
- 	<property name="fetchHeigh" value=""/>
+ 	<property name="seedUrl" value="http://www.dianping.com/search/category/8/10/" />
+ 	<property name="outLinksRegex" value="(http://www.dianping.com/search/category/8/10/.*)|
+ 	(http://www.dianping.com/shop/\d+/review_all.*)"/>
+ 	<property name="contentUrlRegex" value="(http://www.dianping.com/search/category/8/10/.*)|
+ 	(http://www.dianping.com/shop/\d+/review_all.*)"/>
+ 	<property name="fetchHeigh" value="0"/>
+ 	<property name="byJsoup" value="true"/>
+ 	<property name="analogLogin" value="true"/>
+ 	<property name="cookieStr">
+ 	<list>
+ 	<value>abtest="48,124\|52,133\|47,122\|44,106\|45,115"; _hc.v="\"d56c69ca-9680-4bb7-94af-a80b833d82a8.1413530611\""; tc=8; PHOENIX_ID=0a010444-1491cfd9f66-2186ac5; __utma=1.871512914.1411199946.1411978305.1413530622.12; __utmb=1.8.10.1413530622; __utmc=1; __utmz=1.1413530622.12.5.utmcsr=t.dianping.com|utmccn=(referral)|utmcmd=referral|utmcct=/list/chengdu-category_1; s_ViewType=10; JSESSIONID=BA2C35D5A1AB1DCEBA5FB2982E66A525; aburl=1; cy=8; cye=chengdu</value>
+ 	</list>
+ 	</property>
  </bean>
  </list>
  </property>
   </bean>  
- <!-- 
-  ##################################################################
-    边界调度控制
- ##################################################################
-  -->   
- <bean id="frontierScheduler" class="cn.edu.swust.frontier.FrontierScheduler"/>
+
  <!-- 
  ##################################################################
-    工作队列配置
+    外链队列相关配置
  ##################################################################
   -->   
- <bean id="workQueue" class="cn.edu.swust."></bean>  
-    
-    
+ <bean id="comparator" class="cn.edu.swust.uri.CandidateURIComparaotor"/> 
+ <bean id="workQueue" class="cn.edu.swust.frontier.WorkQueue">
+  	<property name="queueType" value="priority" />
+  	<!-- queueSize=0表示最大值 -->
+ 	<property name="queueSize" value="0"/>
+ 	<property name="timeout" value="1000"/>
+ 	<property name="comparator" ref="comparator"/>
+ </bean>  
+   <!-- 
+ ##################################################################
+    berkeleyDBx种子过滤
+ ##################################################################
+  -->     
+ <bean id="berkelyDataSource" class="cn.edu.swust.frontier.BerkelyDBFilter">
+ <property name="dbName" value="fetcheduri"/>
+ <property name="fileName" value="berkeleyDB"/> 
+</bean>
  <!-- 
  ##################################################################
    各种处理器配置（以及工具）
@@ -55,18 +98,16 @@
   -->       
  <bean id="httpUtils" class="cn.edu.swust.processor.fetch.utils.QHttpClient" scope="prototype">
  </bean>   
+  <bean id="fetchProcessor" class="cn.edu.swust.processor.fetch.DefaultFetchtorProcessor" >
+ </bean>   
+  <bean id="extractProcessor" class="cn.edu.swust.processor.extract.DefaultExtractProcessor" >
+ </bean>   
+  <bean id="writerProcessor" class="cn.edu.swust.custom.dazong.DazongWriterProcessor" >
+ </bean>   
+  <bean id="postLinksProcessor" class="cn.edu.swust.processor.postlinks.DefaultPostLinksProcessor" >
+ </bean>   
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+ 
     
     
 <!-- 
@@ -98,8 +139,8 @@ Spring数据库连接池配置
 	
 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource" />
-		<property name="typeAliasesPackage" value="cn.edu.swust.writer"/>
-		<property name="mapperLocations" value="classpath:mapper/*.xml"/>
+		<property name="typeAliasesPackage" value="cn.edu.swust.custom.dazong"/>
+		<property name="mapperLocations" value="classpath:cn/edu/swust/custom/*.xml"/>
 	</bean>
 	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
 		<constructor-arg index="0" ref="sqlSessionFactory" />

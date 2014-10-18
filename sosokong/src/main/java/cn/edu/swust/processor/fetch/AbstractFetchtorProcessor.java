@@ -72,7 +72,7 @@ public boolean  isRedirectHost(CrawlURI uri,HttpContext httpContext){
     HttpHost targetHost = (HttpHost)httpContext.getAttribute(ExecutionContext.HTTP_TARGET_HOST);
     //获取实际的请求对象的URI,即重定向之后的"/blog/admin/login.jsp"
     HttpUriRequest realRequest = (HttpUriRequest)httpContext.getAttribute(ExecutionContext.HTTP_REQUEST);
-    String host = targetHost.toString()+realRequest;
+    String host = targetHost.toString()+realRequest.getURI().toString();
     if(host.contains("?")){
     	host = host.substring(0, host.indexOf("?"));
     }

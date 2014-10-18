@@ -3,6 +3,8 @@ package cn.edu.swust.core;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import cn.edu.swust.frontier.FrontierScheduler;
 import cn.edu.swust.processor.ProcessorChain;
 /**
@@ -18,25 +20,28 @@ public class ExecuteService {
 	/**
 	 * 工作线程数
 	 */
-	private int threadCount = 10;
+	private int workThreadCount = 10;
 	private FrontierScheduler frontier;
 	private ProcessorChain processorChain;
 
 	public void runAPP() {
-		executorService = Executors.newFixedThreadPool(threadCount);
-		for (int i = 0; i < threadCount; i++) {
+		frontier.initialFrontier();//初始化边界控制器
+		executorService = Executors.newFixedThreadPool(workThreadCount);
+		for (int i = 0; i < workThreadCount; i++) {
 			executorService
 					.submit(new CrawlController(frontier, processorChain));
 		}
 	}
 
-	public int getThreadCount() {
-		return threadCount;
+	public int getWorkThreadCount() {
+		return workThreadCount;
 	}
 
-	public void setThreadCount(int threadCount) {
-		this.threadCount = threadCount;
+
+	public void setWorkThreadCount(int workThreadCount) {
+		this.workThreadCount = workThreadCount;
 	}
+
 
 	public FrontierScheduler getFrontier() {
 		return frontier;

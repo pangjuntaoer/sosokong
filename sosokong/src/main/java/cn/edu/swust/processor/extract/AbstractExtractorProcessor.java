@@ -13,6 +13,7 @@ import cn.edu.swust.uri.CrawlURI;
 import cn.edu.swust.uri.SeedTask;
 
 public abstract class AbstractExtractorProcessor extends Processor{
+	
 	final static String REGEX="<[aA]\\s.*?href=[\"\'\\s]*([^\"\'\\s]+)[\"\'\\s]*[^>]*>";
 	static Pattern pt = Pattern.compile(REGEX);
 	
@@ -24,8 +25,13 @@ public abstract class AbstractExtractorProcessor extends Processor{
     	URL absoluteUrl = new URL(crawlURI.getCandidateURI());
     	while(mt.find()){
     		String hrefValue = mt.group(1);
-    		if(!hrefValue.startsWith("http")){
-    			hrefValue = new URL(absoluteUrl ,hrefValue).toString();
+    		if(!hrefValue.startsWith("http")&&hrefValue.contains("/")){
+    			try {
+    				hrefValue = new URL(absoluteUrl ,hrefValue).toString();
+				} catch (Exception e) {
+					e.printStackTrace();
+					log.error("outLink extract Excetprion[1]"+hrefValue);
+				}
     		}
     		Matcher outLinkMt= remainUriRegex.matcher(hrefValue);
     		if(outLinkMt.find()){

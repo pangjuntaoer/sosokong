@@ -1,9 +1,14 @@
 package cn.edu.swust.processor;
 
-import cn.edu.swust.uri.CandidateURI;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import cn.edu.swust.processor.fetch.utils.QHttpClient;
 import cn.edu.swust.uri.CrawlURI;
 
 public abstract class Processor {
+	// 日志输出
+	protected static Log log = LogFactory.getLog(Processor.class);
 	/**
 	 * 处理过程
 	 * @param crawlURI

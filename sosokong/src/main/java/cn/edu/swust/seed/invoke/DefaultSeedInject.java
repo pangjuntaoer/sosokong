@@ -15,5 +15,11 @@ private List<SeedTask> seedTasks;
 	public List<SeedTask> loadSeedTasks() {
 		return seedTasks;
 	}
+	public List<SeedTask> getSeedTasks() {
+		return seedTasks;
+	}
+	public void setSeedTasks(List<SeedTask> seedTasks) {
+		this.seedTasks = seedTasks;
+	}
 
 }

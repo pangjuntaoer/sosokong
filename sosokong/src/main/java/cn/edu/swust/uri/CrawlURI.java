@@ -12,6 +12,9 @@ public class CrawlURI extends CandidateURI {
 	public CrawlURI(SeedTask seedTask) {
 		super(seedTask);
 	}
+	public CrawlURI(CandidateURI candidateURI) {
+		super(candidateURI);
+	}
 	private String content;
 	private String contentMd5;
 	private List<String> outLinks=Lists.newArrayList();

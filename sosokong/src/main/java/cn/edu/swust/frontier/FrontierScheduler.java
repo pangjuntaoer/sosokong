@@ -3,8 +3,6 @@ package cn.edu.swust.frontier;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -15,7 +13,6 @@ import cn.edu.swust.uri.SeedTask;
 
 /**
  * 链接边界调度器，负责控制外链的管理和控制 要求线程安全，每次仅仅单线程读写（可考虑读写分离锁来控制）
- * 
  * @author pery 2014年10月08日21:31:39
  */
 public class FrontierScheduler {
@@ -38,7 +35,7 @@ public class FrontierScheduler {
 	 * 已经抓取url过滤数据集
 	 */
 	@Autowired
-	private BerkelyDBFilter BerkelyDataSource;
+	private BerkelyDBFilter berkelyDataSource;
 	/**
 	 * 显示锁来保证线程安全
 	 */
@@ -87,9 +84,9 @@ public class FrontierScheduler {
 		try {
 			String key = DigestUtils.md5Hex(uri.getCandidateURI());
 			String value = uri.getContentMd5()+"|"+System.currentTimeMillis();
-			BerkelyDataSource.openDatabase();
-			BerkelyDataSource.writeToDatabase(key, value, true);
-			BerkelyDataSource.closeDatabase();
+			berkelyDataSource.openDatabase();
+			berkelyDataSource.writeToDatabase(key, value, true);
+			berkelyDataSource.closeDatabase();
 		} finally {
 			lock.unlock();
 		}
@@ -99,8 +96,8 @@ public class FrontierScheduler {
 		String info="";
 		try {
 			String key = DigestUtils.md5Hex(candidateURI);
-			BerkelyDataSource.openDatabase();
-			info = BerkelyDataSource.readFromDatabase(key);
+			berkelyDataSource.openDatabase();
+			info = berkelyDataSource.readFromDatabase(key);
 		} finally {
 			lock.unlock();
 		}

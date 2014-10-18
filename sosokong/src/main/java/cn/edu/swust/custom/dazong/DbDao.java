@@ -4,11 +4,13 @@ import java.util.List;
 
 import org.apache.ibatis.session.SqlSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 /**
  * 通过配置文件中配置方式来注入
  * @author pery
  *
  */
+@Repository
 public class DbDao {
 	@Autowired
 	private SqlSession sqlSession;

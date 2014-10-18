@@ -1,6 +1,7 @@
 package cn.edu.swust.custom.dazong;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,8 +20,8 @@ import com.google.common.base.Preconditions;
 import cn.edu.swust.processor.writer.AbstractWriterProcessor;
 import cn.edu.swust.uri.CrawlURI;
 
-public class DazongWritterProcesstor extends AbstractWriterProcessor {
-	private static Log log = LogFactory.getLog(DazongWritterProcesstor.class);
+public class DazongWriterProcessor extends AbstractWriterProcessor {
+	private static Log log = LogFactory.getLog(DazongWriterProcessor.class);
 	private static int URLCANDIDAT_QUEUE_SIZE  = 60;
 	private static String ITEM_REGEX="http://www.dianping.com/search/category/8/10/.*";
 	private static String USER_ITEM_REGEX="http://www.dianping.com/shop/(\\d+)/review_all\\?.*";
@@ -44,8 +45,7 @@ public class DazongWritterProcesstor extends AbstractWriterProcessor {
 			String itemId = userItemMt.group(1);
 			candidateUrlList = processUserItemPage(doc,itemId,candidateUrlList);
 		}
-		crawlURI.clearOutLinks()
-			.addAllOutLinks(new ArrayList<String>(candidateUrlList));
+		crawlURI.addAllOutLinks(new ArrayList<String>(candidateUrlList));
 	}
 	
 	private Set<String> processUserItemPage(Document doc,String itemId,Set<String> candidateUrlList) {
@@ -91,28 +91,83 @@ public class DazongWritterProcesstor extends AbstractWriterProcessor {
 	private UserItem extractUserItemInfo(Element e) {
 		UserItem userItem= new UserItem();
 		//li->pic->a[a]
-		Element pic = e.child(0).child(0);
-		userItem.setUserId(pic.attr("user-id"));
+		Element pic = e.child(0);
+		String userPic = pic.child(0).child(0).attr("src");
+		String userName= pic.child(0).child(0).attr("title");
+		String userId = pic.child(0).attr("user-id");
+		userItem.setUserPic(userPic);
+		userItem.setUserName(userName);
+		userItem.setUserId(userId);
 		//
-		Element user_info = e.child(1).child(0);
+		String rankStr = pic.child(2).child(0).attr("class");
+		String rankInt = rankStr.substring(rankStr.indexOf("urr-rank")+8);
+		//用户级别
+		userItem.setUserRank(Float.parseFloat(rankInt)/10);
+		
+		Element content = e.child(1);
+		Element user_info = content.child(0);
 		String starStr = user_info.child(0).attr("class");
-		userItem.setRating(starStr.substring(starStr.length()-2, starStr.length()-1));
+		String starInt = starStr.substring(starStr.indexOf("irr-star")+8);
+		//综合评分
+		userItem.setRating(Float.parseFloat(starInt)/10);
+		//分项评分
 		Elements commentRst=user_info.select(".comment-rst").select(".rst");
+		
 		String tastStr = commentRst.get(0).ownText();
 		String eveStr = commentRst.get(1).ownText();
 		String servStr = commentRst.get(2).ownText();
-		userItem.setTast(tastStr.substring(tastStr.length()-1));
-		userItem.setEnvironment(eveStr.substring(eveStr.length()-1));
-		userItem.setService(servStr.substring(servStr.length()-1));
 		
+		
+		String tastInt = tastStr.substring(tastStr.length()-1);
+		String eveInt = eveStr.substring(eveStr.length()-1);
+		String servInt = servStr.substring(servStr.length()-1);
+		userItem.setTast(Float.parseFloat(tastInt));
+		userItem.setEnvironment(Float.parseFloat(eveInt));
+		userItem.setService(Float.parseFloat(servInt));
+		
+		Elements recommends = content.select(".comment-recommend");
+		for (int i = 0; i < recommends.size(); i++) {
+			Element recommend = recommends.get(i);
+			String text = recommend.ownText();
+			Elements childs = recommend.children();
+			for (int j = 0; j < childs.size(); j++) {
+				text+=","+childs.get(j).text();//分开
+			}
+			userItem.setRecommend(userItem.getRecommend()+"|"+text);
+		}
 		//common_text
-		String commen_txt = e.select(".J_brief-cont").first().text();
+		String commen_txt = content.select(".J_brief-cont").first().text();
 		userItem.setReview(commen_txt);
 		//time
-		userItem.setTimes(e.select(".misc-info").get(0).child(0).text());
+		String time = content.select(".misc-info").first().child(0).text();
+		userItem.setTimes(DazongWriterProcessor.findTime(time));
 		return userItem;
 	}
-	
+	//时间处理
+	static int year = Calendar.getInstance().get(Calendar.YEAR);
+	private static String findTime(String timeStr){
+		String time = timeStr.trim();
+		if(timeStr.contains("更新于")){
+			String prefix = timeStr.substring(0,timeStr.indexOf("更新于")).trim();
+			String postfix = timeStr.substring(timeStr.indexOf("更新于")+3).trim();
+			if(postfix.length()>=14){//yy-mm-dd hh:mm
+				time = postfix;
+			}else if(prefix.length()==8&&postfix.length()<=11){
+				time=prefix.substring(0,2)+"-"+postfix;
+			}
+		}
+		if(time.length()==5){//yy-mm
+			time = year+"-"+time;
+		}else if(!time.startsWith("20")){//yy-mm-dd
+			time = "20"+time;
+		}
+		return time;
+	}
+	public static void main(String[] args) {
+		DazongWriterProcessor ty = new DazongWriterProcessor();
+		//06-07-18  更新于08-21 22:07
+		System.out.println(ty.findTime("07-18  更新于14-08-21 22:07"));
+	}
 	private Set<String> processItemPage(Document doc,Set<String> candidateUrlList) {
 		Elements div = doc.body().select("#sortBar");
 		Elements itemList = div.get(0).child(0).child(1).children(); //getElementsByClass("content");
@@ -163,22 +218,44 @@ public class DazongWritterProcesstor extends AbstractWriterProcessor {
 	}
 	private Item extractItemInfo(Element e) {
 		Item item = new Item();
-		String itemUrl = e.child(0).attr("href");
-		item.setId(itemUrl.substring(6));
-		Element info = e.child(1);
-		item.setName(info.child(0).child(0).child(0).text());
-		Element remark = info.child(1);
+		String itemUrl = e.child(0).attr("href");//item外链
+		String itemPic = e.child(0).child(0).attr("src");//item图片uri
+		item.setId(itemUrl.substring(6));//获取item的id
+		item.setItemPic(itemPic);
+		
+		Element info = e.child(1);//class=info
+		Elements infoChilds = info.children();
+		item.setName(infoChilds.get(0).child(0).child(0).text());
+		Element remark = infoChilds.get(1);//class=remark
 		String starStr = remark.child(0).attr("class");
-		item.setStar(starStr.substring(starStr.length()-2, starStr.length()-1));
-		String reviewCountStr = remark.child(1).text(); 
-		item.setReviewCount(reviewCountStr.substring(0, reviewCountStr.indexOf("封")));
-		Element comment = info.child(2);
-		item.setCost(comment.child(0).child(0).text().trim().replace("￥", ""));
+		String star = starStr.substring(starStr.length()-2, starStr.length()-1);
+		//获得item级别
+		item.setStar(Float.parseFloat(star.charAt(0)+"."+star.charAt(1)));
+		
+		String reviewCountStr = remark.child(1).text();
+		String reviewCount = reviewCountStr.trim().substring(0, reviewCountStr.indexOf("封")); 
+		//获得评评价总数
+		item.setReviewCount(Integer.parseInt(reviewCount));
+		
+		Element comment = infoChilds.get(2);//class=comment
+		String price = comment.child(0).child(0).text().trim().replace("￥", "");
+		//获得人均消费
+		item.setCost(Float.parseFloat(price));
+		
 		String commenList = comment.child(1).text();
 		String [] str = commenList.split("\\s");
-		item.setTast(str[0].substring(2));
-		item.setEnvironment(str[1].substring(2));
-		item.setService(str[2].substring(2));
+		item.setTast(Float.parseFloat(str[0].substring(2)));
+		item.setEnvironment(Float.parseFloat(str[1].substring(2)));
+		item.setService(Float.parseFloat(str[2].substring(2)));
+		
+		if(infoChilds.size()>3){//优惠活动等等
+			for (int i = 3; i < infoChilds.size(); i++) {
+				Element other= infoChilds.get(0);
+				item.setItemInfo(item.getItemInfo()+"|"+other.text());
+			}
+		}
+		Element message = e.child(2);//class=message
+		item.setItemKeyWord(message.text());
 		return item;
 	}
 	@Override

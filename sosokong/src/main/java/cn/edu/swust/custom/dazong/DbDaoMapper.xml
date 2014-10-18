@@ -12,7 +12,11 @@
         environment,
         service,
         times,
-        review
+        review,
+        user_pic,
+        recommend,
+        user_name,
+        user_rank
 	)
    	values 
     <foreach collection="list" index="index" item="item" separator=","> 
@@ -24,7 +28,11 @@
         #{item.environment,jdbcType=VARCHAR},
         #{item.service,jdbcType=VARCHAR},
         #{item.times,jdbcType=VARCHAR},
-        #{item.review,jdbcType=VARCHAR}
+        #{item.review,jdbcType=VARCHAR},
+        #{item.userPic,jdbcType=VARCHAR},
+        #{item.recommend,jdbcType=VARCHAR},
+        #{item.userName,jdbcType=VARCHAR},
+        #{item.userRank,jdbcType=VARCHAR},
 	)
     </foreach>
 </insert>
@@ -38,7 +46,11 @@
         tast,
         environment,
         service,
-        review_count
+        review_count,
+        item_pic,
+        class_type,
+        item_info,
+        item_rank
 	)
    	values 
     <foreach collection="list" index="index" item="item" separator=","> 
@@ -50,7 +62,11 @@
         #{item.tast,jdbcType=VARCHAR},
         #{item.environment,jdbcType=VARCHAR},
         #{item.service,jdbcType=VARCHAR},
-        #{item.reviewCount,jdbcType=VARCHAR}
+        #{item.reviewCount,jdbcType=VARCHAR},
+        #{item.itemPic,jdbcType=VARCHAR},
+        #{item.classType,jdbcType=VARCHAR},
+        #{item.itemInfo,jdbcType=VARCHAR},
+        #{item.itemRank,jdbcType=VARCHAR},
 	)
     </foreach>
 </insert>    

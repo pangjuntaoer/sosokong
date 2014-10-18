@@ -1,8 +1,10 @@
 package cn.edu.swust.uri;
 
+import java.io.Serializable;
+
 import com.google.common.base.Preconditions;
 
-public class CandidateURI implements Comparable<CandidateURI>{
+public class CandidateURI implements Serializable{
 	/**
 	 * 该外链所属的任务种子；
 	 * 必须字段，此字段是
@@ -11,6 +13,7 @@ public class CandidateURI implements Comparable<CandidateURI>{
 	private boolean isSeed=false;
 	private String candidateURI;
 	private String reference;
+	protected CandidateURI(){}
 	/**
 	 * 种子转换为CandidateURI
 	 * @param seedTask
@@ -26,6 +29,16 @@ public class CandidateURI implements Comparable<CandidateURI>{
 		this.reference = reference;
 	}
 	/**
+	 * 拷贝对象值
+	 * @param candidateURI2
+	 */
+	public CandidateURI(CandidateURI candidateURI) {
+		this.seedTask = candidateURI.getSeedTask();
+		this.isSeed = candidateURI.getIsSeed();
+		this.candidateURI = candidateURI.getCandidateURI();
+		this.reference = candidateURI.getReference();
+	}
+	/**
 	 * 获得该候选URI所属的种子任务
 	 * @return SeedTask 种子任务
 	 */
@@ -34,21 +47,15 @@ public class CandidateURI implements Comparable<CandidateURI>{
 				"错误：该CandidateURI所属种子任务为空了！");
 		return seedTask;
 	}
-	/**
-	 * 默认种子排序
-	 */
-	public int compareTo(CandidateURI o) {
-		return 0;
-	}
 	public void setSeedTask(SeedTask seedTask) {
 		this.seedTask = seedTask;
 	}
 
-	public boolean isSeed() {
+	public boolean getIsSeed() {
 		return isSeed;
 	}
 
-	public void setSeed(boolean isSeed) {
+	public void setIsSeed(boolean isSeed) {
 		this.isSeed = isSeed;
 	}
 	public String getCandidateURI() {
