@@ -291,9 +291,9 @@ public class QHttpClient {
 		} finally {
 			httpGet.abort();
 		}
-		log.info("QHttpClient httpGet [3] Response = ....");
+		log.info("QHttpClient httpGet [3] Response = ");
 
-		return responseData.toString();
+		return responseData;
 	}
 
 	/**

@@ -47,7 +47,7 @@ public abstract class AbstractWriterProcessor extends Processor{
 	}
 	@Override
 	public void afterProcess(CrawlURI crawlURI) throws Exception {
-		crawlURI.setContent(null);//helpGC
+		crawlURI.clearContent();//helpGC
 	}
 	
 	public abstract void extractAndWriteByJsoup(CrawlURI crawlURI, Document doc);

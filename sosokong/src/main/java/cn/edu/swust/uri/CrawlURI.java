@@ -22,10 +22,14 @@ public class CrawlURI extends CandidateURI {
 		return content;
 	}
 	public void setContent(String content) {
-		this.content = content;
-		this.contentMd5=DigestUtils.md5Hex(content);
+		if(content!=null){
+			this.content = content;
+			this.contentMd5=DigestUtils.md5Hex(content);
+		}
 	}
-	
+	public void clearContent(){
+		this.content = null;
+	}
 	public String getContentMd5() {
 		return contentMd5;
 	}

@@ -41,11 +41,14 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 		Matcher userItemMt = UserItem_Pattern.matcher(crawlURI.getCandidateURI());		
 		if(itemMt.find()){//如果是item列表页面
 			candidateUrlList = processItemPage(doc,candidateUrlList);
+			crawlURI.addAllOutLinks(new ArrayList<String>(candidateUrlList));
 		}else if(userItemMt.find()){//item评论页面
 			String itemId = userItemMt.group(1);
 			candidateUrlList = processUserItemPage(doc,itemId,candidateUrlList);
+			crawlURI.clearOutLinks().
+				addAllOutLinks(new ArrayList<String>(candidateUrlList));
 		}
-		crawlURI.addAllOutLinks(new ArrayList<String>(candidateUrlList));
+		
 	}
 	
 	private Set<String> processUserItemPage(Document doc,String itemId,Set<String> candidateUrlList) {
@@ -169,8 +172,8 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 		System.out.println(ty.findTime("07-18  更新于14-08-21 22:07"));
 	}
 	private Set<String> processItemPage(Document doc,Set<String> candidateUrlList) {
-		Elements div = doc.body().select("#sortBar");
-		Elements itemList = div.get(0).child(0).child(1).children(); //getElementsByClass("content");
+		Element div = doc.body().select("#sortBar").first();
+		Elements itemList = div.select("ul").first().children(); //getElementsByClass("content");
 		System.out.println("共有条目："+itemList.size());
 		List<Item> list = new ArrayList<Item>(itemList.size());
 		for (int i = 0; i < itemList.size(); i++) {

@@ -8,6 +8,9 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Lists;
+import com.sleepycat.bind.EntryBinding;
+import com.sleepycat.bind.serial.SerialBinding;
+import com.sleepycat.bind.serial.StoredClassCatalog;
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.Database;
@@ -127,11 +130,15 @@ public class BerkelyDBFilter {
      * 向数据库中写入记录
      * 传入key和value
      */
-    public  boolean writeToDatabase(String key,String value,boolean isOverwrite) {
+    public  boolean writeToDatabase(String key,CrawledURIFilter CrawlURIInfo,boolean isOverwrite) {
     	try {
               //设置key/value,注意DatabaseEntry内使用的是bytes数组
               DatabaseEntry theKey=new DatabaseEntry(key.getBytes("UTF-8"));
-              DatabaseEntry theData=new DatabaseEntry(value.getBytes("UTF-8"));
+              StoredClassCatalog classCatalog = new StoredClassCatalog(this.myDatabase);
+              EntryBinding dataBinding = new SerialBinding(classCatalog,
+                      CrawledURIFilter.class);
+              DatabaseEntry theData=new DatabaseEntry();
+              dataBinding.objectToEntry(CrawlURIInfo, theData);
               OperationStatus res = null;
               Transaction txn = null;
               try
@@ -264,10 +271,14 @@ public class BerkelyDBFilter {
      * 从数据库中读出数据
      * 传入key 返回value
      */
-    public String readFromDatabase(String key) {
+    public CrawledURIFilter readFromDatabase(String key) {
+   	 	CrawledURIFilter result = null; 
         try {
              DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
              DatabaseEntry theData = new DatabaseEntry();
+             StoredClassCatalog classCatalog = new StoredClassCatalog(this.myDatabase);
+             EntryBinding dataBinding = new SerialBinding(classCatalog,
+            		 CrawledURIFilter.class);
              Transaction txn = null;
              try
              {
@@ -278,24 +289,23 @@ public class BerkelyDBFilter {
                  txn.commit();
                  if(res == OperationStatus.SUCCESS)
                  {
-                     byte[] retData = theData.getData();
-                     String foundData = new String(retData, "UTF-8");
-                     return foundData;
+                	 result=(CrawledURIFilter)dataBinding.entryToObject(theData);
+                     return result;
                  }
                  else
                  {
-                     return "";
+                     return result;
                  }
              }
              catch(LockConflictException lockConflict)
              {
                  txn.abort();
-                 return "";
+                 return result;
              }
             
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
-            return "";
+            return result;
         }
     }
     

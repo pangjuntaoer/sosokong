@@ -23,7 +23,7 @@
  ##################################################################
   -->   
  <bean id="exeCuteService" class="cn.edu.swust.core.ExecuteService">
- <property name="workThreadCount" value="1"/>
+ <property name="workThreadCount" value="10"/>
  <property name="frontier" ref="frontierScheduler" />
  <property name="processorChain" ref="processorChain" />
  </bean>

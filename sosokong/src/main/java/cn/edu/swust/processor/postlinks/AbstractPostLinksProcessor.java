@@ -1,11 +1,13 @@
 package cn.edu.swust.processor.postlinks;
 
+import java.util.Calendar;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
 
+import cn.edu.swust.berkeley.CrawledURIFilter;
 import cn.edu.swust.frontier.FrontierScheduler;
 import cn.edu.swust.processor.Processor;
 import cn.edu.swust.uri.CandidateURI;
@@ -30,9 +32,20 @@ protected void postOutLinks2FrontinerByAll(CrawlURI uri){
 	String reference = uri.getCandidateURI();
 	List<String> outLinks = uri.outLinkIList();
 	List<CandidateURI> candidateURIs = Lists.newArrayList();
+	Calendar now = Calendar.getInstance();
 	for (int i = 0; i < outLinks.size(); i++) {
-		candidateURIs.add(new CandidateURI(seedTask,outLinks.get(i)
-				,reference));
+		String candidateURI = outLinks.get(i);
+		CrawledURIFilter crawlURIinfo = frontier.uriFethInfo(candidateURI);
+		if(crawlURIinfo==null){
+			candidateURIs.add(new CandidateURI(seedTask,candidateURI,reference));
+		}else if(crawlURIinfo.getCrawlFlag()==CrawledURIFilter.HADCRAWL){
+			//如果已经抓取过了，判断时间节点是否满足新的一轮抓取
+			Calendar old = crawlURIinfo.getCrawlTime();
+			if(now.get(Calendar.HOUR)-old.get(Calendar.HOUR)>=
+			seedTask.getCrawlInterval()){
+				candidateURIs.add(new CandidateURI(seedTask,candidateURI,reference));
+			}
+		}
 	}
 	frontier.putAll(candidateURIs);
 }
@@ -49,9 +62,4 @@ protected void postOutLinks2FrontinerByOne(CrawlURI uri,List<String> outLinks){
 				,reference));
 	}
 }
-
-public void setBerkeleyFlag(CrawlURI uri){
-	
-}
-
 }

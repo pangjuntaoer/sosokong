@@ -55,6 +55,11 @@ public abstract class SeedTask {
 	 */
 	private List<String> cookieStr;
 	private List<CookieStore> cookieStores;
+	/**
+	 * 抓取间隔，以小时为单位，默认24*5，默认5天抓取抓取一次
+	 */
+	private int crawlInterval=120;
+	
 	public String getSeedUrl() {
 		return seedUrl;
 	}
@@ -134,6 +139,14 @@ public abstract class SeedTask {
 	public void setCookieStr(List<String> cookieStr) {
 		this.cookieStr = cookieStr;
 	}
+	public int getCrawlInterval() {
+		return crawlInterval;
+	}
+
+	public void setCrawlInterval(int crawlInterval) {
+		this.crawlInterval = crawlInterval;
+	}
+
 	///以后需要重写，cookie策略
 	public CookieStore getOneCookieStore() throws Exception{
 		if(cookieStores==null){

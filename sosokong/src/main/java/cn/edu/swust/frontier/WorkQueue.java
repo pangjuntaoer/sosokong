@@ -170,7 +170,7 @@ public class WorkQueue {
 
 	/**
 	 * 新增一个种子外链队列（顺序）
-	 * 
+	 * seedTaskArray 未实现，暂时不对外不能使用(private)
 	 * @param task
 	 */
 	public void addTaskSeed(SeedTask task) {
@@ -187,7 +187,7 @@ public class WorkQueue {
 
 	/**
 	 * 删除一个种子的外链队列
-	 * 
+	 * seedTaskArray 为实现，暂时不对外不能使用(private)
 	 * @param task
 	 */
 	public void removeTask(SeedTask task) {
@@ -231,7 +231,15 @@ public class WorkQueue {
 					comparator);
 		}
 	}
-
+	/**
+	 * 根据种子任务查看剩下外链
+	 * @param seedTaskUrl
+	 * @return
+	 */
+	public int seetTaskRemainSize(SeedTask seedTask) {
+		SeedIndex seedIndex = seedIndexMap.get(seedTask.getSeedFingerprint());
+		return seedIndex.outLinksSize;
+	}
 	// //////////实例化构造////
 	private QueueType queueType;
 	private int queueSize = Integer.MAX_VALUE;
@@ -297,8 +305,6 @@ public class WorkQueue {
 	public void setComparator(Comparator<CandidateURI> comparator) {
 		this.comparator = comparator;
 	}
-	
-
 }
 
 /**

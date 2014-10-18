@@ -13,6 +13,7 @@ import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Maps;
 
+import cn.edu.swust.berkeley.CrawledURIFilter;
 import cn.edu.swust.frontier.FrontierScheduler;
 import cn.edu.swust.processor.Processor;
 import cn.edu.swust.processor.fetch.utils.QHttpClient;
@@ -45,9 +46,9 @@ public boolean preFetchProcess(CrawlURI uri){
  * @return
  */
 public boolean isContinueProcess(CrawlURI uri){
-	String info = this.frontier.uriFethInfo(uri.getCandidateURI());
-	if(StringUtils.hasText(info)){
-		if(uri.getContentMd5().equals(info.split("|")[0])){
+	CrawledURIFilter info = this.frontier.uriFethInfo(uri.getCandidateURI());
+	if(info!=null&&StringUtils.hasText(info.getContentMD5())){
+		if(uri.getContentMd5().equals(info.getContentMD5())){
 			return false;
 		}
 	}

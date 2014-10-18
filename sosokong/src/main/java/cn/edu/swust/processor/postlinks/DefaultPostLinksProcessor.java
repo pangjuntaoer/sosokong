@@ -12,14 +12,16 @@ public class DefaultPostLinksProcessor extends AbstractPostLinksProcessor{
 		this.afterProcess(crawlURI);
 		return null;
 	}
-	
+	/**
+	 * 暂时不用
+	 */
 	@Override
 	public void afterProcess(CrawlURI crawlURI) throws Exception {
-		SeedTask seedTask = crawlURI.getSeedTask();
+	/*	SeedTask seedTask = crawlURI.getSeedTask();
 		boolean isFinish  = this.frontier.hasFinished(seedTask);
 		if(isFinish){
 			//
-		}
+		}*/
 		
 		crawlURI = null;//help Gc
 	}

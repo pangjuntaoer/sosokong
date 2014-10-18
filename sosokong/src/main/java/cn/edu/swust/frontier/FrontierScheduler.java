@@ -1,5 +1,6 @@
 package cn.edu.swust.frontier;
 
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -8,6 +9,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.edu.swust.berkeley.BerkelyDBFilter;
+import cn.edu.swust.berkeley.CrawledURIFilter;
 import cn.edu.swust.seed.invoke.SeedInject;
 import cn.edu.swust.uri.CandidateURI;
 import cn.edu.swust.uri.CrawlURI;
@@ -78,14 +80,14 @@ public class FrontierScheduler {
 		return url;
 	}
 /**
- * 存储内容当前链接抓取的key外链,value=md5+"|"+timestamp
+ * 存储内容当前链接抓取的info
  * @param uri
  */
 	public void setupHadFinish(CrawlURI uri) {
 		lock.lock();
 		try {
 			String key = DigestUtils.md5Hex(uri.getCandidateURI());
-			String value = uri.getContentMd5()+"|"+System.currentTimeMillis();
+			CrawledURIFilter value = new CrawledURIFilter(uri.getContentMd5(),Calendar.getInstance());
 			berkelyDataSource.openDatabase();
 			berkelyDataSource.writeToDatabase(key, value, true);
 			berkelyDataSource.closeDatabase();
@@ -93,9 +95,14 @@ public class FrontierScheduler {
 			lock.unlock();
 		}
 	}
-	public String uriFethInfo(String candidateURI){
+	/**
+	 * 某个链接的抓取信息info
+	 * @param candidateURI
+	 * @return
+	 */
+	public CrawledURIFilter uriFethInfo(String candidateURI){
 		lock.lock();
-		String info="";
+		CrawledURIFilter info=null;
 		try {
 			String key = DigestUtils.md5Hex(candidateURI);
 			berkelyDataSource.openDatabase();
@@ -107,12 +114,18 @@ public class FrontierScheduler {
 	}
 /**
  * 判断当前这个任务本轮是否完成抓取
+ * 有bug...待完善
  * @param seedTask
  * @return
  */
 	public boolean hasFinished(SeedTask seedTask){
 		//
-		return false;
+		int remainSize = this.workQueue.seetTaskRemainSize(seedTask);
+		if(remainSize<=0){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	/**
 	 * 添加一个Candidate
@@ -148,10 +161,10 @@ public class FrontierScheduler {
 
 	/**
 	 * 添加一个新的种子任务
-	 * 
+	 * 暂时不对外不能使用(private),因为workQueue.addTaskSeed(task);未完善
 	 * @param task
 	 */
-	public void addOneSeedTask(SeedTask task) {
+	private void addOneSeedTask(SeedTask task) {
 		lock.lock();
 		try {
 			this.seedTasks.add(task);
@@ -163,10 +176,10 @@ public class FrontierScheduler {
 
 	/**
 	 * 删除一个已经存在的任务
-	 * 
+	 * 暂时不对外不能使用(private),因为workQueue.removeTask(task);未完善
 	 * @param task
 	 */
-	public void removeSeedTask(SeedTask task) {
+	private void removeSeedTask(SeedTask task) {
 		lock.lock();
 		try {
 			this.workQueue.removeTask(task);
