@@ -86,7 +86,7 @@ public class WorkQueue {
 			if (success && nowIndex > -1) {
 				BlockingQueue<CandidateURI> linksQueue = outLinksQueue
 						.get(nowIndex);
-				uri = linksQueue.poll(timeout, TimeUnit.MILLISECONDS);
+				uri = linksQueue.poll();//poll(timeout, TimeUnit.MILLISECONDS);
 				seedIndex.outLinksSize = linksQueue.size();
 			}
 		} finally {

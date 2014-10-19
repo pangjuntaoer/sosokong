@@ -63,7 +63,6 @@ public class FrontierScheduler {
 	 * @return
 	 */
 	public CandidateURI next() {
-		lock.lock();
 		CandidateURI url = null;
 		try {
 			while (true) {
@@ -74,9 +73,7 @@ public class FrontierScheduler {
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} finally {
-			lock.unlock();
-		}
+		} 
 		return url;
 	}
 /**
@@ -96,20 +93,16 @@ public class FrontierScheduler {
 		}
 	}
 	/**
-	 * 某个链接的抓取信息info
+	 * 读取某个链接的抓取信息info
+	 * 不需保证线程安全
 	 * @param candidateURI
 	 * @return
 	 */
 	public CrawledURIFilter uriFethInfo(String candidateURI){
-		lock.lock();
 		CrawledURIFilter info=null;
-		try {
-			String key = DigestUtils.md5Hex(candidateURI);
-			berkelyDataSource.openDatabase();
-			info = berkelyDataSource.readFromDatabase(key);
-		} finally {
-			lock.unlock();
-		}
+		String key = DigestUtils.md5Hex(candidateURI);
+		berkelyDataSource.openDatabase();
+		info = berkelyDataSource.readFromDatabase(key);
 		return info;
 	}
 /**
@@ -133,13 +126,10 @@ public class FrontierScheduler {
 	 * @param outLink
 	 */
 	public void put(CandidateURI outLink) {
-		lock.lock();
 		try {
 			this.workQueue.addCandidateURI(outLink);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} finally {
-			lock.unlock();
 		}
 	}
 
@@ -149,14 +139,11 @@ public class FrontierScheduler {
 	 * @param outLinks
 	 */
 	public void putAll(List<CandidateURI> outLinks) {
-		lock.lock();
 		try {
 			this.workQueue.addAllCandidateURI(outLinks);
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			lock.unlock();
-		}
+		} 
 	}
 
 	/**

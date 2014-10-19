@@ -4,7 +4,11 @@ import java.io.Serializable;
 
 import com.google.common.base.Preconditions;
 
-public class CandidateURI implements Serializable{
+public class CandidateURI implements Comparable<CandidateURI>,Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * 该外链所属的任务种子；
 	 * 必须字段，此字段是
@@ -70,5 +74,16 @@ public class CandidateURI implements Serializable{
 	public void setReference(String reference) {
 		this.reference = reference;
 	}
+	////////////////////////////////////////////////////////
 	
+	///////////////////////////////////////////////////////
+	/**
+	 * 外链的在队列中排序规则
+	 */
+	public int compareTo(CandidateURI o) {
+		if(this.getCandidateURI().contains("search")){
+			return -1;
+		}
+		return 0;
+	}
 }

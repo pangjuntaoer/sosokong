@@ -69,7 +69,7 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 		for (int i = 0; i < comments.size(); i++) {
 			Element e = comments.get(i);
 			if (e.tagName().equals("li")) {
-				UserItem userItem = extractUserItemInfo(crawlURI,e);
+				UserItem userItem = extractUserItemInfo(crawlURI, e);
 				userItem.setItemId(itemId);
 				list.add(userItem);
 			}
@@ -110,51 +110,53 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 		userItem.setUserId(userId);
 		//
 		try {
-		String rankStr = pic.select(".contribution").first().child(0)
-				.attr("class");
-		
+			String rankStr = pic.select(".contribution").first().child(0)
+					.attr("class");
+
 			String rankInt = rankStr.substring(rankStr.indexOf("urr-rank") + 8);
 			// 用户级别
 			userItem.setUserRank(Float.parseFloat(rankInt) / 10);
 
-		Element content = e.child(1);
-		Element user_info = content.child(0);
-		String starStr = user_info.child(0).attr("class");
-		String starInt = starStr.substring(starStr.indexOf("irr-star") + 8);
-		// 综合评分
-		userItem.setRating(Float.parseFloat(starInt) / 10);
-		// 分项评分
-		Elements commentRst = user_info.select(".comment-rst").select(".rst");
+			Element content = e.child(1);
+			Element user_info = content.child(0);
+			String starStr = user_info.child(0).attr("class");
+			String starInt = starStr.substring(starStr.indexOf("irr-star") + 8);
+			// 综合评分
+			userItem.setRating(Float.parseFloat(starInt) / 10);
+			// 分项评分
+			Elements commentRst = user_info.select(".comment-rst").select(
+					".rst");
 
-		String tastStr = commentRst.get(0).ownText();
-		String eveStr = commentRst.get(1).ownText();
-		String servStr = commentRst.get(2).ownText();
+			String tastStr = commentRst.get(0).ownText();
+			String eveStr = commentRst.get(1).ownText();
+			String servStr = commentRst.get(2).ownText();
 
-		String tastInt = tastStr.substring(tastStr.length() - 1);
-		String eveInt = eveStr.substring(eveStr.length() - 1);
-		String servInt = servStr.substring(servStr.length() - 1);
-		userItem.setTast(Float.parseFloat(tastInt));
-		userItem.setEnvironment(Float.parseFloat(eveInt));
-		userItem.setService(Float.parseFloat(servInt));
+			String tastInt = tastStr.substring(tastStr.length() - 1);
+			String eveInt = eveStr.substring(eveStr.length() - 1);
+			String servInt = servStr.substring(servStr.length() - 1);
+			userItem.setTast(Float.parseFloat(tastInt));
+			userItem.setEnvironment(Float.parseFloat(eveInt));
+			userItem.setService(Float.parseFloat(servInt));
 
-		Elements recommends = content.select(".comment-recommend");
-		for (int i = 0; i < recommends.size(); i++) {
-			Element recommend = recommends.get(i);
-			String text = recommend.ownText();
-			Elements childs = recommend.children();
-			for (int j = 0; j < childs.size(); j++) {
-				text += "," + childs.get(j).text();// 分开
+			Elements recommends = content.select(".comment-recommend");
+			for (int i = 0; i < recommends.size(); i++) {
+				Element recommend = recommends.get(i);
+				String text = recommend.ownText();
+				Elements childs = recommend.children();
+				for (int j = 0; j < childs.size(); j++) {
+					text += "," + childs.get(j).text();// 分开
+				}
+				userItem.setRecommend(userItem.getRecommend() + "|" + text);
 			}
-			userItem.setRecommend(userItem.getRecommend() + "|" + text);
-		}
-		// common_text
-		String commen_txt = content.select(".J_brief-cont").first().text();
-		userItem.setReview(commen_txt);
-		// time
-		String time = content.select(".misc-info").first().child(0).text();
-		userItem.setTimes(DazongWriterProcessor.findTime(time));
+			// common_text
+			String commen_txt = content.select(".J_brief-cont").first().text();
+			userItem.setReview(commen_txt);
+			// time
+			String time = content.select(".misc-info").first().child(0).text();
+			userItem.setTimes(DazongWriterProcessor.findTime(time));
 		} catch (Exception e2) {
-			log.error("CrawlURI error[1]"+crawlURI.getCandidateURI()+"->"+userItem.getUserName());
+			log.error("CrawlURI error[1]" + crawlURI.getCandidateURI() + "->"
+					+ userItem.getUserName());
 		}
 		return userItem;
 	}
@@ -196,34 +198,28 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 		Elements itemList = null;
 		try {
 			itemList = div.select("ul").first().children(); // getElementsByClass("content");
-		} catch (Exception e) {
-			log.error("当前页面无需要内容:" + crawlURI.getCandidateURI());
-		}
-
-		System.out.println("共有条目：" + itemList.size());
-		List<Item> list = new ArrayList<Item>(itemList.size());
-		for (int i = 0; i < itemList.size(); i++) {
-			Element e = itemList.get(i);
-			if (e.tagName().equals("li")) {
-				try {
-					Item item = extractItemInfo(crawlURI, e);
-					if (item != null) {
-						list.add(item);
-						// 构造评分页码
-						candidateUrlList.add("http://www.dianping.com/shop/"
-								+ item.getItemId() + "/review_all?pageno=1");
+			System.out.println("共有条目：" + itemList.size());
+			List<Item> list = new ArrayList<Item>(itemList.size());
+			for (int i = 0; i < itemList.size(); i++) {
+				Element e = itemList.get(i);
+				if (e.tagName().equals("li")) {
+					try {
+						Item item = extractItemInfo(crawlURI, e);
+						if (item != null) {
+							list.add(item);
+							// 构造评分页码
+							candidateUrlList
+									.add("http://www.dianping.com/shop/"
+											+ item.getItemId()
+											+ "/review_all?pageno=1");
+						}
+					} catch (Exception e2) {
+						e2.printStackTrace();
 					}
-				} catch (Exception e2) {
-					e2.printStackTrace();
 				}
 			}
-		}
-		try {
 			if (list.size() > 0)
 				dbdao.insertIntoItem(list);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		Element page = div.select(".page").first();
 		this.userItemPageOutLinkExtract(page, candidateUrlList);
 		// 导航分类抽取
@@ -234,6 +230,9 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 			if (ue.attr("href").contains("/search/category/8/10")) {
 				candidateUrlList.add(BASE_ITEM_PAGE + ue.attr("href"));
 			}
+		}
+		} catch (Exception e) {
+			log.error("内容异常:" + crawlURI.getCandidateURI()+";content\n"+div.html()+"\n");
 		}
 		return candidateUrlList;
 	}
