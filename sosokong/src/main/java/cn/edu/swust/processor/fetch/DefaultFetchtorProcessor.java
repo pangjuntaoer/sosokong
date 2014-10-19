@@ -16,21 +16,28 @@ public class DefaultFetchtorProcessor extends AbstractFetchtorProcessor {
 	public ProcessResult process(CrawlURI crawlURI) throws Exception {
 		QHttpClient httpClient = this.getOneHttpClient();
 		CookieStore cookie = crawlURI.getSeedTask().getOneCookieStore();
-		
-		String content = httpClient.httpGet(crawlURI.getCandidateURI(),cookie);
-									//simpleHttpGet(crawlURI.getCandidateURI(),null, cookie, null);
-		
-		boolean isRedirect = this.isRedirectHost(crawlURI, httpClient.getHttpContext());
-		if(!isRedirect&&httpClient.getHttpResponseCode()>=HttpStatus.SC_OK&&
-				httpClient.getHttpResponseCode()<HttpStatus.SC_BAD_REQUEST){
+
+		String content = httpClient.httpGet(crawlURI.getCandidateURI(), cookie);
+		// simpleHttpGet(crawlURI.getCandidateURI(),null, cookie, null);
+
+		boolean isRedirect = this.isRedirectHost(crawlURI,
+				httpClient.getHttpContext());
+		if (!isRedirect && httpClient.getHttpResponseCode() >= HttpStatus.SC_OK
+				&& httpClient.getHttpResponseCode() < HttpStatus.SC_BAD_REQUEST) {
 			crawlURI.setContent(content);
+			if (!this.isContinueProcess(crawlURI)) {
+				return ProcessResult.FINISH;
+			}
+			this.afterProcess(crawlURI);
+			return ProcessResult.PROCEED;
+
 		}
-		if(!this.isContinueProcess(crawlURI)){
+		{
 			return ProcessResult.FINISH;
 		}
-		this.afterProcess(crawlURI);
-		return ProcessResult.PROCEED;
+
 	}
+
 	@Override
 	public void afterProcess(CrawlURI crawlURI) {
 	}

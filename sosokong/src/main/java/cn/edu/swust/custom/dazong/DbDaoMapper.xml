@@ -32,7 +32,7 @@
         #{item.userPic,jdbcType=VARCHAR},
         #{item.recommend,jdbcType=VARCHAR},
         #{item.userName,jdbcType=VARCHAR},
-        #{item.userRank,jdbcType=FLOAT},
+        #{item.userRank,jdbcType=FLOAT}
 	)
     </foreach>
 </insert>
@@ -64,28 +64,8 @@
         #{item.reviewCount,jdbcType=VARCHAR},
         #{item.itemPic,jdbcType=VARCHAR},
         #{item.itemInfo,jdbcType=VARCHAR},
-        #{item.itemKeyWord,jdbcType=VARCHAR},
+        #{item.itemKeyWord,jdbcType=VARCHAR}
 	)
     </foreach>
 </insert>    
-
-<select id="selectTraindata" resultType="com.swust.app.DataModel">
-select 
-t.user_id as userId,
-t.item_id as itemId,
-t.service as rating,
-t.times as date,
-i.name as itemName
-from
-train_data t,item i
-where
-t.item_id=i.id
-</select>
-
-<select id="selectUsers" resultType="Long">
-SELECT DISTINCT user_id FROM train_data
-</select>
-<select id="selectItems" resultType="Long">
-SELECT DISTINCT item_id FROM train_data
-</select>
 </mapper>

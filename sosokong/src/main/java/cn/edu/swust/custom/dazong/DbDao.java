@@ -19,6 +19,7 @@ public class DbDao {
 	}
 	
 	public int insertIntoItem(List<Item> itemList)throws Exception {
+		System.out.println(itemList.toString());
 		return sqlSession.insert("depaItem.insertIntoItem", itemList);
 	}
 	public int insertIntoUserItem(List<UserItem> userItemList)throws Exception {

@@ -16,7 +16,6 @@ public abstract class AbstractExtractorProcessor extends Processor{
 	
 	final static String REGEX="<[aA]\\s.*?href=[\"\'\\s]*([^\"\'\\s]+)[\"\'\\s]*[^>]*>";
 	static Pattern pt = Pattern.compile(REGEX);
-	
 	public void innerExtractOutLink(CrawlURI crawlURI) throws MalformedURLException{
     	Matcher mt = pt.matcher(crawlURI.getContent());
     	SeedTask seed = crawlURI.getSeedTask();

@@ -22,7 +22,10 @@ public String toString(){
 	  .append("tast:").append(this.tast)
 	  .append("environment:").append(this.environment)
 	  .append("service:").append(this.service)
-	  .append("reviewCount:").append(this.reviewCount);
+	  .append("reviewCount:").append(this.reviewCount)
+	  .append("itemPic:").append(this.itemPic)
+	  .append("itemInfo:").append(this.itemInfo)
+	  .append("itemKeyWord:").append(this.itemKeyWord);
 	return bf.toString();
 }
 public String getItemId() {

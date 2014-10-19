@@ -66,10 +66,11 @@ public class QHttpClient {
 	public static final int SO_TIME_OUT_MS = 10000;
 	public static final int MAX_CONNECTIONS_PER_HOST = 20;
 	public static final int MAX_TOTAL_CONNECTIONS = 200;
-
+	//去掉url锚文本标记
+	public static final String ANCHOR="#\\w*";
 	// 日志输出
 	private static Log log = LogFactory.getLog(QHttpClient.class);
-
+	
 	private DefaultHttpClient httpClient;
 	private HttpContext httpContext;
 	private int httpResponseCode = 0;
@@ -86,7 +87,15 @@ public class QHttpClient {
 	public void destroyCustomCookie() {
 		httpClient.setCookieStore(null);
 	}
-
+	/**
+	 * 去掉url中锚文本标记
+	 * @param url
+	 * @return
+	 */
+	public static String formatURI(String url){
+		String formatURI=url.replaceAll(QHttpClient.ANCHOR, "");
+		return formatURI;
+	}
 	/**
 	 * 个性化配置连接管理器
 	 * 
@@ -195,7 +204,7 @@ public class QHttpClient {
 	 */
 	public String simpleHttpGet(String url, String queryString,
 			CookieStore cookieStore, HttpHost proxyHost) throws Exception {
-
+		url=QHttpClient.formatURI(url);
 		String responseData = null;
 		if (queryString != null && !queryString.equals("")) {
 			url += "?" + queryString;
@@ -237,6 +246,16 @@ public class QHttpClient {
 		return this.httpGet(url, null, cookieStore, proxyHost);
 	}
 
+	public static void main(String[] args) {
+		QHttpClient test = new QHttpClient();
+		try {
+			test.httpGet("http://www.dianping.com/search/category/8/10/g117q666#breadCrumb");
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
 	/**
 	 * Get方法传送消息
 	 * 
@@ -254,6 +273,7 @@ public class QHttpClient {
 	public String httpGet(String url, String queryString,
 			CookieStore cookieStore, HttpHost proxyHost) throws Exception {
 		String responseData = null;
+		url=QHttpClient.formatURI(url);
 		if (StringUtils.hasText(queryString)) {
 			url += "?" + queryString;
 		}
@@ -308,6 +328,7 @@ public class QHttpClient {
 	 */
 	public String httpPost(String url, String queryString) throws Exception {
 		StringBuilder responseData = new StringBuilder();
+		url=QHttpClient.formatURI(url);
 		URI tmpUri = new URI(url);
 		URI uri = URIUtils.createURI(tmpUri.getScheme(), tmpUri.getHost(),
 				tmpUri.getPort(), tmpUri.getPath(), queryString, null);
@@ -357,7 +378,7 @@ public class QHttpClient {
 	 */
 	public String httpPostWithFile(String url, String queryString,
 			List<NameValuePair> files) throws Exception {
-
+		url=QHttpClient.formatURI(url);
 		StringBuilder responseData = new StringBuilder();
 
 		URI tmpUri = new URI(url);
@@ -395,9 +416,8 @@ public class QHttpClient {
 			mpEntity.addPart(fbp);
 
 		}
-
+		
 		// log.info("---------- Entity Content Type = "+mpEntity.getContentType());
-
 		httpPost.setEntity(mpEntity);
 		httpResponseCode = 0;
 		HttpResponse response = httpClient.execute(httpPost, httpContext);
