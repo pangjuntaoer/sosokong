@@ -56,7 +56,6 @@ public class WorkQueue {
 	 */
 	private Lock lock = new ReentrantLock(false);
 	
-	private Comparator<CandidateURI> comparator;
 	/**
 	 * 取出一个外链
 	 * 
@@ -227,8 +226,7 @@ public class WorkQueue {
 		} else if (this.queueType.getValue().equals("linked")) {
 			return new LinkedBlockingQueue<CandidateURI>(this.queueSize);
 		} else {
-			return new PriorityBlockingQueue<CandidateURI>(WorkQueue.DEFAULT_QUEUE_SIZE,
-					comparator);
+			return new PriorityBlockingQueue<CandidateURI>(WorkQueue.DEFAULT_QUEUE_SIZE);
 		}
 	}
 	/**
@@ -297,14 +295,7 @@ public class WorkQueue {
 	public void setTimeout(long timeout) {
 		this.timeout = timeout;
 	}
-
-	public Comparator<CandidateURI> getComparator() {
-		return comparator;
-	}
-
-	public void setComparator(Comparator<CandidateURI> comparator) {
-		this.comparator = comparator;
-	}
+	
 }
 
 /**

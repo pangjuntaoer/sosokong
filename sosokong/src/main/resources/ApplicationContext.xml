@@ -72,13 +72,11 @@
     外链队列相关配置
  ##################################################################
   -->   
- <bean id="comparator" class="cn.edu.swust.uri.CandidateURIComparaotor"/> 
  <bean id="workQueue" class="cn.edu.swust.frontier.WorkQueue">
   	<property name="queueType" value="priority" />
   	<!-- queueSize=0表示最大值 -->
  	<property name="queueSize" value="0"/>
  	<property name="timeout" value="10000"/>
- 	<property name="comparator" ref="comparator"/>
  </bean>  
    <!-- 
  ##################################################################
