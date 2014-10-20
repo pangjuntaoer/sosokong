@@ -41,7 +41,9 @@ protected void postOutLinks2FrontinerByAll(CrawlURI uri){
 		}else if(crawlURIinfo.getCrawlFlag()==CrawledURIFilter.HADCRAWL){
 			//如果已经抓取过了，判断时间节点是否满足新的一轮抓取
 			Calendar old = crawlURIinfo.getCrawlTime();
-			if(now.get(Calendar.HOUR)-old.get(Calendar.HOUR)>=
+			int timeIntervel = (int)(now.getTimeInMillis()-
+					old.getTimeInMillis())/3600000;//两次相差多少小时
+			if(timeIntervel>=
 			seedTask.getCrawlInterval()){
 				candidateURIs.add(new CandidateURI(seedTask,candidateURI,reference));
 			}
