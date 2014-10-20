@@ -18,7 +18,7 @@ public class App {
 		 ApplicationContext ctx = new ClassPathXmlApplicationContext(xmlPath);
 		 System.out.println("配置文件载入完成OK"); ExecuteService exe =
 		 ctx.getBean(ExecuteService.class); exe.runAPP();
-		//test();
+		//test1();
 	}
 	static void test(){
 		String regex="(http://www.dianping.com/search/category/8/10/.*)|(http://www.dianping.com/shop/\\d+/review_all.*)";
@@ -28,7 +28,7 @@ public class App {
 	}
 	static void test1() {
 		String hrefValue = "http://www.dianping.com/search/category/8/10/g117q666#breadCrumb?";
-		String regex = "#\\w*";
+		String regex = "#\\w*;?";
 		Pattern pt = Pattern.compile(regex);
 		Matcher mt = pt.matcher(regex);
 	/*	while(mt.find()){

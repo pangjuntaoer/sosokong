@@ -35,7 +35,7 @@ protected void postOutLinks2FrontinerByAll(CrawlURI uri){
 	Calendar now = Calendar.getInstance();
 	for (int i = 0; i < outLinks.size(); i++) {
 		String candidateURI = outLinks.get(i);
-		CrawledURIFilter crawlURIinfo = frontier.uriFethInfo(candidateURI);
+		CrawledURIFilter crawlURIinfo = frontier.readURIFetchInfo(candidateURI);
 		if(crawlURIinfo==null){
 			candidateURIs.add(new CandidateURI(seedTask,candidateURI,reference));
 		}else if(crawlURIinfo.getCrawlFlag()==CrawledURIFilter.HADCRAWL){
@@ -48,6 +48,13 @@ protected void postOutLinks2FrontinerByAll(CrawlURI uri){
 		}
 	}
 	frontier.putAll(candidateURIs);
+}
+/**
+ * 重试
+ * @param crawlURI
+ */
+protected void retry2FrontinerByOne(CrawlURI crawlURI){
+	frontier.put(crawlURI);
 }
 /**
  * 一个一个加入外链

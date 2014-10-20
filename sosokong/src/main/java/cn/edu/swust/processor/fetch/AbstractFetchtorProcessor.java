@@ -42,13 +42,15 @@ public boolean preFetchProcess(CrawlURI uri){
 }
 /**
  * 抓取后内容判断处理,判断是否进行后续处理
+ * 只用于每一轮抓取的判断
  * @param uri
  * @return
  */
 public boolean isContinueProcess(CrawlURI uri){
-	CrawledURIFilter info = this.frontier.uriFethInfo(uri.getCandidateURI());
+	CrawledURIFilter info = this.frontier.readURIFetchInfo(uri.getCandidateURI());
 	if(info!=null&&StringUtils.hasText(info.getContentMD5())){
 		if(uri.getContentMd5().equals(info.getContentMD5())){
+			this.frontier.WriteURIFetchFinishInfo(uri);//覆盖上次抓取记录（更新抓取时间）
 			return false;
 		}
 	}

@@ -43,6 +43,9 @@ public class BerkelyDBFilter {
     //数据库名称
     private  String dbName = "fetcheduri";
     
+    public BerkelyDBFilter(){
+    	openDatabase();
+    }
     /*
      * 打开当前数据库
      */

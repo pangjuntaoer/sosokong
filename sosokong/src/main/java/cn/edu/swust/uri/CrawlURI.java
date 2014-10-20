@@ -9,6 +9,7 @@ import org.apache.http.impl.client.BasicCookieStore;
 import com.google.common.collect.Lists;
 
 public class CrawlURI extends CandidateURI {
+	private boolean retry=false;
 	public CrawlURI(SeedTask seedTask) {
 		super(seedTask);
 	}
@@ -106,4 +107,11 @@ public class CrawlURI extends CandidateURI {
 	public List<String> outLinkIList(){
 		return this.outLinks;
 	}
+	public boolean isRetry() {
+		return retry;
+	}
+	public void setRetry(boolean retry) {
+		this.retry = retry;
+	}
+	
 }

@@ -30,7 +30,6 @@ public class CrawledURIFilter implements Serializable {
 
 	public CrawledURIFilter() {
 		crawlFlag = CrawledURIFilter.WAITING;
-		;
 	}
 
 	public CrawledURIFilter(String md5, Calendar time) {

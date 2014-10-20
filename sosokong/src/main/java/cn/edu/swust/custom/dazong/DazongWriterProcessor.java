@@ -157,6 +157,7 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 		} catch (Exception e2) {
 			log.error("CrawlURI error[1]" + crawlURI.getCandidateURI() + "->"
 					+ userItem.getUserName());
+			
 		}
 		return userItem;
 	}
@@ -232,7 +233,7 @@ public class DazongWriterProcessor extends AbstractWriterProcessor {
 			}
 		}
 		} catch (Exception e) {
-			log.error("内容异常:" + crawlURI.getCandidateURI()+";content\n"+div.html()+"\n");
+			log.error("内容异常:" + crawlURI.getCandidateURI()+";\n"+e.getMessage());
 		}
 		return candidateUrlList;
 	}

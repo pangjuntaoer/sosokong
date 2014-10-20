@@ -22,11 +22,7 @@ private Processor postLinksProcessor;
 public void beginProcess(CandidateURI outLink){
 	try {
 		CrawlURI uri = new CrawlURI(outLink);
-/*		////////////////
-		String outLinks="http://www.dianping.com/shop/530643/review_all?pageno=1";
-		uri.setCandidateURI(outLinks);
-		/////////////////////
-*/		ProcessResult fr = this.fetchProcessor.process(uri);
+		ProcessResult fr = this.fetchProcessor.process(uri);
 		if(fr.equals(ProcessResult.PROCEED)){
 			ProcessResult er = this.extractProcessor.process(uri);
 			if(er.equals(ProcessResult.PROCEED)){
@@ -34,6 +30,7 @@ public void beginProcess(CandidateURI outLink){
 				ProcessResult pr = this.postLinksProcessor.process(uri);
 			}
 		}else if(fr.equals(ProcessResult.FINISH)){
+			uri.setRetry(true);
 			this.postLinksProcessor.process(uri);
 		}
 		

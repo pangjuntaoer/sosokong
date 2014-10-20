@@ -8,16 +8,19 @@ public class DefaultPostLinksProcessor extends AbstractPostLinksProcessor{
 
 	@Override
 	public ProcessResult process(CrawlURI crawlURI) throws Exception {
-		this.postOutLinks2FrontinerByAll(crawlURI);
+		if(!crawlURI.isRetry()){
+			this.postOutLinks2FrontinerByAll(crawlURI);
+		}else{
+			this.retry2FrontinerByOne(crawlURI);
+		}
 		this.afterProcess(crawlURI);
 		return null;
 	}
-	/**
-	 * 暂时不用
-	 */
 	@Override
 	public void afterProcess(CrawlURI crawlURI) throws Exception {
-	/*	SeedTask seedTask = crawlURI.getSeedTask();
+		this.frontier.WriteURIFetchFinishInfo(crawlURI);//完成
+		//////////下面进行判断本轮抓取完成处理
+		/*	SeedTask seedTask = crawlURI.getSeedTask();
 		boolean isFinish  = this.frontier.hasFinished(seedTask);
 		if(isFinish){
 			//

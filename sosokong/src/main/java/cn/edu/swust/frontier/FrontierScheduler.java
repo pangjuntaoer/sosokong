@@ -17,6 +17,7 @@ import cn.edu.swust.uri.SeedTask;
 
 /**
  * 链接边界调度器，负责控制外链的管理和控制 要求线程安全，每次仅仅单线程读写（可考虑读写分离锁来控制）
+ * 
  * @author pery 2014年10月08日21:31:39
  */
 public class FrontierScheduler {
@@ -73,53 +74,83 @@ public class FrontierScheduler {
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		} 
+		}
 		return url;
 	}
-/**
- * 存储内容当前链接抓取的info
- * @param uri
- */
-	public void setupHadFinish(CrawlURI uri) {
+
+	/**
+	 * 写入当前抓取链接完成的标识
+	 * 
+	 * @param uri
+	 */
+	public void WriteURIFetchFinishInfo(CrawlURI uri) {
 		lock.lock();
 		try {
 			String key = DigestUtils.md5Hex(uri.getCandidateURI());
-			CrawledURIFilter value = new CrawledURIFilter(uri.getContentMd5(),Calendar.getInstance());
-			berkelyDataSource.openDatabase();
+			CrawledURIFilter value = new CrawledURIFilter(uri.getContentMd5(),
+					Calendar.getInstance());
+			//berkelyDataSource.openDatabase();
 			berkelyDataSource.writeToDatabase(key, value, true);
-			berkelyDataSource.closeDatabase();
-		} finally {
+			//berkelyDataSource.closeDatabase();
+		} catch (Exception e) {
+			lock.unlock();
+		}
+	}
+
+	/**
+	 * 写入当前链接为等待抓取状态
+	 * 
+	 * @param uri
+	 */
+	public void WriteURIFetchWaitInfo(CandidateURI uri) {
+		lock.lock();
+		try {
+		String key = DigestUtils.md5Hex(uri.getCandidateURI());
+		CrawledURIFilter value = new CrawledURIFilter();
+		//berkelyDataSource.openDatabase();
+		berkelyDataSource.writeToDatabase(key, value, true);
+		//berkelyDataSource.closeDatabase();
+		} catch (Exception e) {
 			lock.unlock();
 		}
 	}
 	/**
-	 * 读取某个链接的抓取信息info
-	 * 不需保证线程安全
+	 * 写入当前链接为等待抓取状态
+	 * 
+	 * @param uri
+	 */
+	public void WriteURIFetchWaitInfoByBatch(List<CandidateURI> uris) {
+		lock.lock();
+		try {
+		//berkelyDataSource.openDatabase();
+		for (int i = 0; i < uris.size(); i++) {
+			CandidateURI uri = uris.get(i);
+			String key = DigestUtils.md5Hex(uri.getCandidateURI());
+			CrawledURIFilter value = new CrawledURIFilter();
+			berkelyDataSource.writeToDatabase(key, value, true);
+		}
+		//berkelyDataSource.closeDatabase();
+		} catch (Exception e) {
+			lock.unlock();
+		}
+	}
+
+	
+	/**
+	 * 读取某个链接的抓取信息info 不需保证线程安全
+	 * 
 	 * @param candidateURI
 	 * @return
 	 */
-	public CrawledURIFilter uriFethInfo(String candidateURI){
-		CrawledURIFilter info=null;
+	public CrawledURIFilter readURIFetchInfo(String candidateURI) {
+		CrawledURIFilter info = null;
 		String key = DigestUtils.md5Hex(candidateURI);
-		berkelyDataSource.openDatabase();
+		//berkelyDataSource.openDatabase();
 		info = berkelyDataSource.readFromDatabase(key);
+		//berkelyDataSource.closeDatabase();
 		return info;
 	}
-/**
- * 判断当前这个任务本轮是否完成抓取
- * 有bug...待完善
- * @param seedTask
- * @return
- */
-	public boolean hasFinished(SeedTask seedTask){
-		//
-		int remainSize = this.workQueue.seetTaskRemainSize(seedTask);
-		if(remainSize<=0){
-			return true;
-		}else{
-			return false;
-		}
-	}
+
 	/**
 	 * 添加一个Candidate
 	 * 
@@ -134,21 +165,41 @@ public class FrontierScheduler {
 	}
 
 	/**
-	 * 批量添加
+	 * 批量添加外链
 	 * 
 	 * @param outLinks
 	 */
 	public void putAll(List<CandidateURI> outLinks) {
 		try {
-			this.workQueue.addAllCandidateURI(outLinks);
+			for (int i = 0; i < outLinks.size(); i++) {
+				CandidateURI candidateURI = outLinks.get(i);
+				this.WriteURIFetchWaitInfo(candidateURI);
+				this.workQueue.addCandidateURI(candidateURI);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
+		}
+	}
+
+	// /////////////////////////////////////////以下内容待完善////////////////
+	/**
+	 * 判断当前这个任务本轮是否完成抓取 有bug...待完善
+	 * 
+	 * @param seedTask
+	 * @return
+	 */
+	public boolean hasFinished(SeedTask seedTask) {
+		int remainSize = this.workQueue.seetTaskRemainSize(seedTask);
+		if (remainSize <= 0) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	/**
-	 * 添加一个新的种子任务
-	 * 暂时不对外不能使用(private),因为workQueue.addTaskSeed(task);未完善
+	 * 添加一个新的种子任务 暂时不对外不能使用(private),因为workQueue.addTaskSeed(task);未完善
+	 * 
 	 * @param task
 	 */
 	private void addOneSeedTask(SeedTask task) {
@@ -162,8 +213,8 @@ public class FrontierScheduler {
 	}
 
 	/**
-	 * 删除一个已经存在的任务
-	 * 暂时不对外不能使用(private),因为workQueue.removeTask(task);未完善
+	 * 删除一个已经存在的任务 暂时不对外不能使用(private),因为workQueue.removeTask(task);未完善
+	 * 
 	 * @param task
 	 */
 	private void removeSeedTask(SeedTask task) {
