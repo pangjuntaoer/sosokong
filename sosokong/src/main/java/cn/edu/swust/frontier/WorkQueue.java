@@ -327,7 +327,11 @@ public class WorkQueue implements Serializable{
  * @author pery
  * 
  */
-class SeedIndex {
+class SeedIndex implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -1979956948985891473L;
 	public SeedIndex(int index) {
 		this.index = index;
 	}

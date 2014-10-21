@@ -67,7 +67,7 @@ public class QHttpClient {
 	public static final int MAX_CONNECTIONS_PER_HOST = 20;
 	public static final int MAX_TOTAL_CONNECTIONS = 200;
 	//去掉url锚文本标记 #*** 或 #×××;
-	public static final String ANCHOR="#\\w*;?";
+	public static final String ANCHOR="#\\w*;*";
 	// 日志输出
 	private static Log log = LogFactory.getLog(QHttpClient.class);
 	

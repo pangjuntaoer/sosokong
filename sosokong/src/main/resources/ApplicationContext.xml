@@ -24,8 +24,8 @@
   -->   
  <bean id="backupHandle" class="cn.edu.swust.core.BackupHandle"/> 
  <bean id="exeCuteService" class="cn.edu.swust.core.ExecuteService">
- <property name="workThreadCount" value="10"/>
-  <property name="bakcupInterval" value="10"/>
+ <property name="workThreadCount" value="15"/>
+  <property name="bakcupInterval" value="60"/>
  <property name="frontier" ref="frontierScheduler" />
  <property name="processorChain" ref="processorChain" />
  <property name="backupHandle" ref="backupHandle"/>

@@ -1,5 +1,6 @@
 package cn.edu.swust.frontier;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -80,8 +81,9 @@ public class FrontierScheduler {
 				if(o.getClass().isInstance(workQueue)){
 					workQueue.recoverWorkQueue((WorkQueue)o);
 					w = true;
-				}else if(o.getClass().isInstance(seedTasks)){
-					seedTasks = (List)o;
+				}else if(o instanceof ArrayList){
+					ArrayList seeds = (ArrayList)o;
+					seedTasks = seeds;
 					s=true;
 				}
 			}

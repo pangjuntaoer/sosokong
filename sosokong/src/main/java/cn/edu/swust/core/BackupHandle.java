@@ -14,8 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 public class BackupHandle {
 	private static Log logger = LogFactory.getLog(BackupHandle.class);
-	private String backPath="BackUp/workQueue.back";
-	@Value("BackUp/workQueue.back")
+	private String backPath="backup.back";
+	@Value("backup.back")
 	public void setBackPath(String backPath) {
 		this.backPath = backPath;
 	}
@@ -23,7 +23,7 @@ public class BackupHandle {
 	 * 备份一个对象数组
 	 * @param objects
 	 */
-	public  void backUpData(Object []objects){
+	public synchronized void backUpData(Object []objects){
 		ObjectOutputStream os = null;
 		try {
 			 os = new ObjectOutputStream(new FileOutputStream(backPath));
@@ -43,7 +43,7 @@ public class BackupHandle {
 		}
 	}
 
-	public Object recoverOneObject(Class classType){
+	public synchronized Object recoverOneObject(Class classType){
 		Object[] objs = this.recoverBackUp();
 		Object result = null;
 		try {

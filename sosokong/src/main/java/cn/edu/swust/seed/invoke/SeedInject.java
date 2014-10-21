@@ -1,5 +1,6 @@
 package cn.edu.swust.seed.invoke;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cn.edu.swust.uri.SeedTask;
@@ -12,8 +13,9 @@ import cn.edu.swust.uri.SeedTask;
 public abstract class SeedInject {
 /**
  * 载入种子的方式，自己实现，从数据库还是配置文件
+ * 必须用ArrayList保存
  * @return
  */
-public abstract List<SeedTask> loadSeedTasks();
+public abstract ArrayList<SeedTask> loadSeedTasks();
 
 }

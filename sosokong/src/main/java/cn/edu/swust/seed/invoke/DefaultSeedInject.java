@@ -1,5 +1,6 @@
 package cn.edu.swust.seed.invoke;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import cn.edu.swust.uri.SeedTask;
@@ -10,15 +11,15 @@ import cn.edu.swust.uri.SeedTask;
  *
  */
 public class DefaultSeedInject extends SeedInject{
-private List<SeedTask> seedTasks;
+private ArrayList<SeedTask> seedTasks;
 	@Override
-	public List<SeedTask> loadSeedTasks() {
+	public ArrayList<SeedTask> loadSeedTasks() {
 		return seedTasks;
 	}
-	public List<SeedTask> getSeedTasks() {
+	public ArrayList<SeedTask> getSeedTasks() {
 		return seedTasks;
 	}
-	public void setSeedTasks(List<SeedTask> seedTasks) {
+	public void setSeedTasks(ArrayList<SeedTask> seedTasks) {
 		this.seedTasks = seedTasks;
 	}
 
