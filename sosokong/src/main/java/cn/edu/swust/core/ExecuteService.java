@@ -1,5 +1,7 @@
 package cn.edu.swust.core;
 
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -23,14 +25,24 @@ public class ExecuteService {
 	private int workThreadCount = 10;
 	private FrontierScheduler frontier;
 	private ProcessorChain processorChain;
-
+	private BackupHandle backupHandle;
+	/**
+	 * 备份间隔(s);
+	 */
+	private int bakcupInterval=10;
 	public void runAPP() {
-		frontier.initialFrontier();//初始化边界控制器
+		frontier.initialFrontier(backupHandle);//初始化边界控制器
 		executorService = Executors.newFixedThreadPool(workThreadCount);
 		for (int i = 0; i < workThreadCount; i++) {
 			executorService
 					.submit(new CrawlController(frontier, processorChain));
 		}
+		//启动备份定时任务
+		Timer timer = new Timer();
+		BackupController backupTask = new BackupController(frontier.backupObjects(),
+				backupHandle);
+		//10s后开始执行，每隔bakcupInterval*1000s备份依次
+		timer.schedule(backupTask, 10000, bakcupInterval*1000);
 	}
 
 	public int getWorkThreadCount() {
@@ -57,6 +69,22 @@ public class ExecuteService {
 
 	public void setProcessorChain(ProcessorChain processorChain) {
 		this.processorChain = processorChain;
+	}
+
+	public BackupHandle getBackupHandle() {
+		return backupHandle;
+	}
+
+	public void setBackupHandle(BackupHandle backupHandle) {
+		this.backupHandle = backupHandle;
+	}
+
+	public int getBakcupInterval() {
+		return bakcupInterval;
+	}
+
+	public void setBakcupInterval(int bakcupInterval) {
+		this.bakcupInterval = bakcupInterval;
 	}
 
 }

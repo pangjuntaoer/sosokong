@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import cn.edu.swust.berkeley.BerkelyDBFilter;
 import cn.edu.swust.berkeley.CrawledURIFilter;
+import cn.edu.swust.core.BackupController;
+import cn.edu.swust.core.BackupHandle;
 import cn.edu.swust.seed.invoke.SeedInject;
 import cn.edu.swust.uri.CandidateURI;
 import cn.edu.swust.uri.CrawlURI;
@@ -23,7 +25,7 @@ import cn.edu.swust.uri.SeedTask;
 public class FrontierScheduler {
 	/**
 	 * 
-	 * 种子任务队列
+	 * 种子任务队列(需要随时备份)
 	 */
 	private List<SeedTask> seedTasks;
 	/**
@@ -32,7 +34,7 @@ public class FrontierScheduler {
 	@Autowired
 	private SeedInject seedInject;
 	/**
-	 * 外链策略
+	 * 外链存储队列(需要随时备份)
 	 */
 	@Autowired
 	private WorkQueue workQueue;
@@ -48,8 +50,12 @@ public class FrontierScheduler {
 
 	/**
 	 * 初始化边界器 这里可以实现抓取备份恢复（暂时未实现）
+	 * @param backupHandle 备份恢复操作
 	 */
-	public void initialFrontier() {
+	public void initialFrontier(BackupHandle backupHandle) {
+		if(this.recoverFromBackup(backupHandle)){
+			return;
+		}
 		seedTasks = seedInject.loadSeedTasks();
 		try {
 			workQueue.initialWorkQueue(seedTasks);
@@ -57,7 +63,41 @@ public class FrontierScheduler {
 			e.printStackTrace();
 		}
 	}
-
+	/**
+	 * 从备份文件中恢复数据
+	 * @param backHandle
+	 * @return
+	 */
+	private boolean recoverFromBackup(BackupHandle backupHandle){
+		Object [] objects = backupHandle.recoverBackUp();
+		if(objects==null||objects.length==0){
+			return false;
+		}else {
+			boolean w =false;
+			boolean s = false;
+			for (int i = 0; i < objects.length; i++) {
+				Object o = objects[i];
+				if(o.getClass().isInstance(workQueue)){
+					workQueue.recoverWorkQueue((WorkQueue)o);
+					w = true;
+				}else if(o.getClass().isInstance(seedTasks)){
+					seedTasks = (List)o;
+					s=true;
+				}
+			}
+			return w&s;
+		}
+	}
+	/**
+	 * 获得需要备份对象
+	 * @return
+	 */
+	public Object[] backupObjects() {
+		Object [] objects= new Object [2];
+		objects[0] = this.seedTasks;
+		objects[1] = this.workQueue;
+		return objects;
+	}
 	/**
 	 * 获取下一个待抓取的外链 循环轮询，直到条件溢出
 	 * 
@@ -232,5 +272,4 @@ public class FrontierScheduler {
 			lock.unlock();
 		}
 	}
-
 }

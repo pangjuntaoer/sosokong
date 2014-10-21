@@ -1,5 +1,6 @@
 package cn.edu.swust.uri;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
@@ -15,7 +16,7 @@ import com.google.common.collect.Lists;
  * @author pery
  *2014年10月08日20:02:19
  */
-public abstract class SeedTask {
+public abstract class SeedTask implements Serializable {
 	/**
 	 * 种子内容
 	 */

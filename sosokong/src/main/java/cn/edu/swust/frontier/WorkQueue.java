@@ -1,5 +1,6 @@
 package cn.edu.swust.frontier;
 
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Iterator;
@@ -29,7 +30,11 @@ import cn.edu.swust.uri.SeedTask;
  * 
  * @author pery 2014年10月08日19:07:59
  */
-public class WorkQueue {
+public class WorkQueue implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 4365142697682799146L;
 	/**
 	 * 默认队列大小
 	 */
@@ -163,6 +168,24 @@ public class WorkQueue {
 				i++;
 			}
 		} finally {
+			lock.unlock();
+		}
+	}
+	/**
+	 * 备份恢复
+	 * @param backupWorkQueue
+	 */
+	public void recoverWorkQueue(WorkQueue backupWorkQueue){
+		lock.lock();
+		try {
+			outLinksQueue = backupWorkQueue.outLinksQueue;
+			seedIndexMap = backupWorkQueue.seedIndexMap;
+			seedTaskArray = backupWorkQueue.seedTaskArray;
+			lastGetIndex = backupWorkQueue.lastGetIndex;
+			queueType = backupWorkQueue.queueType;
+			queueSize = backupWorkQueue.queueSize;
+			timeout = backupWorkQueue.timeout;
+		}finally {
 			lock.unlock();
 		}
 	}
